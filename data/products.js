@@ -19,18 +19,19 @@
               - Un lien par taille : { S: "https://buy.stripe.com/aaa", M: "https://buy.stripe.com/bbb" }
     featured  true pour le produit mis en avant en haut de page (un seul)
 
-  TOUT CE QUI SUIT EST PROVISOIRE : noms, prix et liens sont à remplacer par ceux du client.
+  Photos réelles : Tee FKN VAMOS!, Casquette Con Todo!, Casquette FKN VAMOS!.
+  PROVISOIRE : prix, tailles, liens Stripe, et les autres produits (visuel dessiné).
 */
 
 window.FKN_PRODUCTS = [
   {
-    id: "tee-vamos-classic",
-    name: "Tee Vamos Classic",
+    id: "tee-fkn-vamos",
+    name: "Tee FKN VAMOS!",
     type: "tee",
     price: 35,
-    color: "#f6f7fb",
-    towel: ["#ef3b2d", "#f6f7fb"],
-    image: "",
+    color: "#111111",
+    towel: ["#12b5bf", "#04223a"],
+    image: "assets/img/tee-fkn-vamos.jpg",
     sizes: ["S", "M", "L", "XL"],
     stock: "dispo",
     stripe: "",
@@ -61,13 +62,25 @@ window.FKN_PRODUCTS = [
     stripe: ""
   },
   {
-    id: "cap-socorrista",
-    name: "Casquette Socorrista",
+    id: "cap-con-todo",
+    name: "Casquette Con Todo!",
     type: "cap",
     price: 28,
-    color: "#ef3b2d",
+    color: "#111111",
     towel: ["#f6f7fb", "#0a1440"],
-    image: "",
+    image: "assets/img/cap-con-todo.jpg",
+    sizes: ["Unique"],
+    stock: "dispo",
+    stripe: ""
+  },
+  {
+    id: "cap-fkn-vamos",
+    name: "Casquette FKN VAMOS!",
+    type: "cap",
+    price: 28,
+    color: "#111111",
+    towel: ["#2f7fe0", "#f6f7fb"],
+    image: "assets/img/cap-fkn-vamos.jpg",
     sizes: ["Unique"],
     stock: "dispo",
     stripe: ""

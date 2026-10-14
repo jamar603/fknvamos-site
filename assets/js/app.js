@@ -1,10 +1,15 @@
 (() => {
   "use strict";
 
+  document.documentElement.classList.add("js");
+
   const products = window.FKN_PRODUCTS || [];
   const shop = window.FKN_SHOP || {};
   const $ = (s, el = document) => el.querySelector(s);
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+  const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const finePointer = matchMedia("(hover: hover) and (pointer: fine)").matches;
 
   const money = new Intl.NumberFormat("fr-FR", { style: "currency", currency: shop.currency || "EUR", maximumFractionDigits: 0 });
   const STOCK = {
@@ -12,6 +17,7 @@
     derniers: { label: "Dernières pièces", buy: true },
     epuise: { label: "Épuisé", buy: false }
   };
+  const stockOf = (p) => STOCK[p.stock] || STOCK.dispo;
 
   /* ---------- Visuels provisoires (remplacés par product.image) ---------- */
   const SHAPES = {
@@ -27,8 +33,8 @@
     return l > 150 ? "#04223a" : "#f5fbfb";
   }
 
-  function garment(p) {
-    if (p.image) return `<img src="${p.image}" alt="${p.name}" loading="lazy" decoding="async">`;
+  function garment(p, lazy = true) {
+    if (p.image) return `<img src="${p.image}" alt="${p.name}" ${lazy ? 'loading="lazy"' : ""} decoding="async">`;
     const print = p.type === "shorts"
       ? `<text x="150" y="160" font-size="11">FKN</text>`
       : p.type === "cap"
@@ -44,6 +50,8 @@
     const [a, b] = p.towel || ["#12b5bf", "#ffd84a"];
     return `--t1:${a};--t2:${b}`;
   }
+
+  const badge = (p) => `<span class="badge badge--${p.stock}">${stockOf(p).label}</span>`;
 
   /* ---------- Paiement Stripe ---------- */
   function checkoutUrl(p, size) {
@@ -62,9 +70,8 @@
     window.location.href = url;
   }
 
-  /* ---------- Bloc achat (taille + bouton) ---------- */
   function buyBlock(p, idPrefix) {
-    const st = STOCK[p.stock] || STOCK.dispo;
+    const st = stockOf(p);
     const single = p.sizes.length === 1;
     const sizes = p.sizes.map((s, i) => `
       <label class="size">
@@ -76,7 +83,7 @@
         <legend>Taille</legend>
         <div class="sizes__row">${sizes}</div>
       </fieldset>
-      <button class="btn btn--dark buy" data-buy="${p.id}" ${st.buy ? "" : "disabled"}>
+      <button class="btn btn--buy" data-buy="${p.id}" ${st.buy ? "" : "disabled"}>
         ${st.buy ? `Acheter · ${money.format(p.price)}` : "Épuisé"}
       </button>`;
   }
@@ -91,41 +98,34 @@
     });
   }
 
-  /* ---------- Produit vedette ---------- */
-  function badge(p) {
-    return `<span class="badge badge--${p.stock}">${(STOCK[p.stock] || STOCK.dispo).label}</span>`;
-  }
-
+  /* ---------- Pièce phare (carte posée sur le hero) ---------- */
   function renderFeatured() {
     const slot = $("[data-featured]");
     const p = products.find((x) => x.featured) || products[0];
     if (!slot || !p) return;
     slot.innerHTML = `
-      <article class="feat">
-        <div class="art reveal" style="${artStyle(p)}">${garment(p)}</div>
-        <div class="feat__info reveal" style="--d:1">
-          <p class="eyebrow">Pièce phare du drop</p>
-          ${badge(p)}
-          <h2 class="feat__name">${p.name}</h2>
-          <p class="feat__price">${money.format(p.price)}</p>
-          ${buyBlock(p, "feat")}
-        </div>
-      </article>`;
-    wireBuy(slot, p);
+      <button class="feat" data-open="${p.id}" aria-label="${p.name}, ${money.format(p.price)}, choisir ma taille">
+        <span class="feat__art">${garment(p, false)}</span>
+        <span>
+          <span class="feat__label">Pièce phare</span>
+          <span class="feat__name">${p.name}</span>
+          <span class="feat__price">${money.format(p.price)}</span>
+        </span>
+        <span class="feat__go">Choisir ma taille <span aria-hidden="true">→</span></span>
+      </button>`;
   }
 
-  /* ---------- Grille ---------- */
-  function renderGrid(filter = "all") {
+  /* ---------- Le drop ---------- */
+  function renderGrid(filter = "all", animate = false) {
     const grid = $("[data-grid]");
     const list = products.filter((p) => filter === "all" || p.type === filter);
-    grid.innerHTML = list.map((p, i) => `
-      <li class="grid__item" style="--i:${i}">
+    grid.innerHTML = list.map((p) => `
+      <li class="drop__item">
         <button class="card ${p.stock === "epuise" ? "is-out" : ""}" data-open="${p.id}"
-          aria-label="${p.name}, ${money.format(p.price)}, ${(STOCK[p.stock] || STOCK.dispo).label}">
-          <span class="card__inner">
+          aria-label="${p.name}, ${money.format(p.price)}, ${stockOf(p).label}">
+          <span class="card__media" style="${artStyle(p)}">
             ${badge(p)}
-            <span class="art" style="${artStyle(p)}">${garment(p)}</span>
-            <span class="card__shine"></span>
+            ${garment(p)}
           </span>
           <span class="card__meta">
             <span class="card__name">${p.name}</span>
@@ -134,25 +134,90 @@
         </button>
       </li>`).join("");
     $("[data-empty]").hidden = list.length > 0;
+    $("[data-count]").textContent = `${list.length} pièce${list.length > 1 ? "s" : ""}`;
+
+    if (animate && !reduced) {
+      $$(".drop__item", grid).forEach((el, i) => el.animate(
+        [{ opacity: 0, transform: "translateY(14px)" }, { opacity: 1, transform: "none" }],
+        { duration: 350, delay: i * 40, easing: "cubic-bezier(.23, 1, .32, 1)", fill: "backwards" }
+      ));
+    }
+    layoutDrop();
   }
 
   function wireFilters() {
     $$("[data-filter]").forEach((chip) => chip.addEventListener("click", () => {
+      if (chip.classList.contains("is-on")) return;
       $$("[data-filter]").forEach((c) => { c.classList.remove("is-on"); c.setAttribute("aria-pressed", "false"); });
       chip.classList.add("is-on");
       chip.setAttribute("aria-pressed", "true");
-      renderGrid(chip.dataset.filter);
+      renderGrid(chip.dataset.filter, true);
     }));
   }
 
-  /* ---------- Fiche produit ---------- */
+  // Desktop : la section se fige et le scroll vertical fait glisser le rail.
+  // Mobile / tactile : rail natif avec snap, on swipe.
+  const drop = $("[data-drop]");
+  const track = $("[data-grid]");
+  const viewport = $("[data-viewport]");
+  const rail = $("[data-rail]");
+  const pinMq = matchMedia("(min-width: 900px) and (hover: hover) and (pointer: fine)");
+  let pinned = false;
+  let maxX = 0;
+
+  function layoutDrop() {
+    if (!drop) return;
+    pinned = pinMq.matches && !reduced;
+    drop.classList.toggle("is-pinned", pinned);
+    if (pinned) {
+      maxX = Math.max(0, track.scrollWidth - innerWidth);
+      drop.style.height = `${innerHeight + maxX}px`;
+    } else {
+      maxX = 0;
+      drop.style.height = "";
+      track.style.transform = "";
+    }
+    updateDrop();
+  }
+
+  function updateDrop() {
+    if (!drop) return;
+    let prog;
+    if (pinned) {
+      prog = maxX ? clamp(-drop.getBoundingClientRect().top / maxX, 0, 1) : 0;
+      track.style.transform = `translate3d(${(-prog * maxX).toFixed(1)}px, 0, 0)`;
+    } else {
+      const max = viewport.scrollWidth - viewport.clientWidth;
+      prog = max > 0 ? viewport.scrollLeft / max : 0;
+    }
+    rail.style.transform = `scaleX(${prog.toFixed(4)})`;
+  }
+
+  function wireDrop() {
+    viewport.addEventListener("scroll", () => { if (!pinned) updateDrop(); }, { passive: true });
+    pinMq.addEventListener("change", layoutDrop);
+    // Clavier : amener la carte focalisée dans le rail figé
+    track.addEventListener("focusin", (e) => {
+      if (!pinned) return;
+      const item = e.target.closest(".drop__item");
+      if (!item) return;
+      const gutter = parseFloat(getComputedStyle(track).paddingLeft) || 0;
+      const x = clamp(item.offsetLeft - gutter, 0, maxX);
+      scrollTo({ top: drop.offsetTop + x, behavior: reduced ? "auto" : "smooth" });
+    });
+  }
+
+  /* ---------- Fiche produit : modale / tiroir ---------- */
   const sheet = $("[data-sheet]");
+  let closing = false;
+
   function openSheet(id) {
     const p = products.find((x) => x.id === id);
     if (!p) return;
     const body = $("[data-sheet-body]");
     body.innerHTML = `
-      <div class="art" style="${artStyle(p)}">${garment(p)}</div>
+      <span class="sheet__grab" data-grab aria-hidden="true"></span>
+      <div class="sheet__art" style="${artStyle(p)}">${garment(p, false)}</div>
       <div class="sheet__info">
         ${badge(p)}
         <h2 id="sheet-title" class="sheet__name">${p.name}</h2>
@@ -161,8 +226,22 @@
         <p class="sheet__note">Paiement sécurisé Stripe. Tu choisis ta livraison à l'étape suivante.</p>
       </div>`;
     wireBuy(body, p);
+    sheet.style.transform = "";
     sheet.showModal();
+    document.documentElement.style.overflow = "hidden";
     history.replaceState(null, "", `#p/${p.id}`);
+  }
+
+  function closeSheet() {
+    if (!sheet.open || closing) return;
+    closing = true;
+    sheet.style.transform = "";
+    sheet.classList.add("is-closing");
+    setTimeout(() => {
+      sheet.close();
+      sheet.classList.remove("is-closing");
+      closing = false;
+    }, reduced ? 0 : 230);
   }
 
   function wireSheet() {
@@ -170,10 +249,44 @@
       const t = e.target.closest("[data-open]");
       if (t) openSheet(t.dataset.open);
     });
-    sheet.addEventListener("click", (e) => { if (e.target === sheet) sheet.close(); });
-    sheet.addEventListener("close", () => history.replaceState(null, "", location.pathname + location.search));
+    $("[data-close]", sheet).addEventListener("click", closeSheet);
+    sheet.addEventListener("click", (e) => { if (e.target === sheet) closeSheet(); });
+    sheet.addEventListener("cancel", (e) => { e.preventDefault(); closeSheet(); });
+    sheet.addEventListener("close", () => {
+      document.documentElement.style.overflow = "";
+      history.replaceState(null, "", location.pathname + location.search);
+    });
+    wireDrag();
     const m = location.hash.match(/^#p\/(.+)$/);
     if (m) openSheet(decodeURIComponent(m[1]));
+  }
+
+  // Tiroir mobile : tirer vers le bas pour fermer. Un geste rapide suffit.
+  function wireDrag() {
+    let startY = 0, startT = 0, dy = 0, active = false;
+    sheet.addEventListener("pointerdown", (e) => {
+      if (active || innerWidth > 720 || !e.target.closest("[data-grab], .sheet__art")) return;
+      if (sheet.scrollTop > 0) return;
+      active = true; startY = e.clientY; startT = performance.now(); dy = 0;
+      sheet.classList.add("is-dragging");
+      sheet.setPointerCapture(e.pointerId);
+    });
+    sheet.addEventListener("pointermove", (e) => {
+      if (!active) return;
+      const raw = e.clientY - startY;
+      dy = raw > 0 ? raw : -Math.sqrt(-raw) * 2; // friction vers le haut
+      sheet.style.transform = `translateY(${dy.toFixed(1)}px)`;
+    });
+    const end = () => {
+      if (!active) return;
+      active = false;
+      sheet.classList.remove("is-dragging");
+      const velocity = dy / (performance.now() - startT);
+      if (dy > 120 || (dy > 24 && velocity > 0.11)) closeSheet();
+      else sheet.style.transform = "";
+    };
+    sheet.addEventListener("pointerup", end);
+    sheet.addEventListener("pointercancel", end);
   }
 
   /* ---------- Toast ---------- */
@@ -186,212 +299,868 @@
     toastTimer = setTimeout(() => el.classList.remove("is-on"), 3600);
   }
 
-  /* ---------- Animations ---------- */
-  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const finePointer = matchMedia("(hover: hover) and (pointer: fine)").matches;
-  const lerp = (a, b, t) => a + (b - a) * t;
-  const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+  /* ---------- Scroll : header, hero, progression, manifeste ---------- */
+  const top = $("[data-top]");
+  const hero = $("[data-hero]");
+  const heroMedia = $("[data-hero-media]");
+  const heroContent = $("[data-hero-content]");
+  const heroFeat = $("[data-featured]");
+  const hud = $(".hud");
+  const progress = $("[data-progress]");
+  const scrollPct = $("[data-scroll-pct]");
+  const words = [];
+  let lit = -1;
 
-  // Titre découpé en lettres pour l'entrée en cascade
-  function splitTitle() {
-    $$("[data-split]").forEach((el) => {
-      const text = el.textContent;
-      el.setAttribute("aria-label", text);
-      let i = 0;
-      el.innerHTML = text.split(" ").map((word) => `<span class="word" aria-hidden="true">${
-        [...word].map((c) => `<span class="ch" style="--i:${i++}">${c}</span>`).join("")
-      }</span>`).join(" ");
-    });
+  function splitWords() {
+    const el = $("[data-words]");
+    if (!el) return;
+    const text = el.textContent.trim();
+    el.setAttribute("aria-label", text);
+    el.innerHTML = text.split(/\s+/).map((w) => `<span class="w" aria-hidden="true">${w}</span>`).join(" ");
+    words.push(...$$(".w", el));
   }
 
-  // Header transparent sur le hero, givré ensuite
-  function wireHeader() {
-    const top = $("[data-top]");
-    const hero = $("[data-hero]");
-    if (!top || !hero) return;
-    new IntersectionObserver(([e]) => top.classList.toggle("is-solid", !e.isIntersecting), {
-      rootMargin: "-72px 0px 0px 0px"
-    }).observe(hero);
+  function onScroll() {
+    const y = scrollY;
+    const vh = innerHeight;
+    const heroH = hero.offsetHeight;
+
+    // Menu toujours visible : dès qu'on descend, il devient une île de verre
+    top.classList.toggle("is-solid", y > 40);
+
+    const max = document.documentElement.scrollHeight - vh;
+    const pct = max > 0 ? y / max : 0;
+    progress.style.transform = `scaleX(${pct.toFixed(4)})`;
+    if (scrollPct) scrollPct.textContent = String(Math.round(pct * 100)).padStart(3, "0");
+
+    // Hero : l'image descend moins vite que la page, le texte s'efface
+    if (!reduced && y < heroH) {
+      const p = y / heroH;
+      heroMedia.style.transform = `translate3d(0, ${(y * 0.25).toFixed(1)}px, 0) scale(${(1 + p * 0.06).toFixed(4)})`;
+      heroContent.style.transform = `translate3d(0, ${(y * -0.12).toFixed(1)}px, 0)`;
+      heroContent.style.opacity = heroFeat.style.opacity = hud.style.opacity = Math.max(0, 1 - p * 1.6).toFixed(3);
+    }
+
+    updateDrop();
+
+    // Manifeste : les mots s'allument au fil du scroll
+    if (words.length && !reduced) {
+      const r = words[0].parentElement.getBoundingClientRect();
+      const p = clamp((vh * 0.8 - r.top) / (r.height + vh * 0.3), 0, 1);
+      const n = Math.round(p * words.length);
+      if (n !== lit) {
+        words.forEach((w, i) => w.classList.toggle("is-on", i < n));
+        lit = n;
+      }
+    }
   }
 
-  // Apparition des blocs au scroll
-  function wireReveal() {
-    const els = $$(".reveal");
-    if (reduced || !("IntersectionObserver" in window)) return els.forEach((el) => el.classList.add("is-in"));
+  function wireScroll() {
+    let raf = 0;
+    addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; onScroll(); }); }, { passive: true });
+    addEventListener("resize", () => { layoutDrop(); onScroll(); });
+    onScroll();
+  }
+
+  /* ---------- Apparitions : lookbook (clip-path) et footer ---------- */
+  function wireReveals() {
+    const shots = $$("[data-shot]");
+    shots.forEach((el, i) => el.style.setProperty("--delay", `${(i % 2) * 90}ms`));
+    $$(".foot__word span").forEach((el, i) => el.style.setProperty("--i", i));
+    const targets = [...shots, $(".foot__word")].filter(Boolean);
+    if (reduced || !("IntersectionObserver" in window)) return targets.forEach((el) => el.classList.add("is-in"));
     const io = new IntersectionObserver((entries) => entries.forEach((e) => {
       if (!e.isIntersecting) return;
       e.target.classList.add("is-in");
       io.unobserve(e.target);
-    }), { threshold: 0.15, rootMargin: "0px 0px -8% 0px" });
-    els.forEach((el) => io.observe(el));
+    }), { rootMargin: "0px 0px -12% 0px" });
+    targets.forEach((el) => io.observe(el));
   }
 
-  // Hero : zoom d'entrée, parallax souris + scroll, contenu qui s'efface
-  function wireHeroMotion() {
-    const hero = $("[data-hero]");
+  /* ---------- Hero vivant : la mer du wallpaper animée en WebGL ----------
+     Mer en perspective (bruit qui roule vers la plage), scintillement du soleil,
+     écume qui respire, brume et rayons dans le ciel, profondeur 2.5D qui suit
+     la souris avec un ressort, ondes au toucher. Le surfeur, les rochers et le
+     treillis restent nets. Netteté renforcée (CAS) + grain fin pour l'image agrandie. */
+  const VERT = `
+    attribute vec2 p;
+    varying vec2 v_uv;
+    void main() {
+      v_uv = vec2(p.x * 0.5 + 0.5, 0.5 - p.y * 0.5);
+      gl_Position = vec4(p, 0.0, 1.0);
+    }`;
+
+  const FRAG = `
+    precision highp float;
+    uniform sampler2D u_tex;
+    uniform vec2 u_res;
+    uniform vec2 u_img;
+    uniform vec2 u_focus;
+    uniform vec2 u_look;     // regard (souris + ressort), -0.5..0.5
+    uniform vec2 u_cam;      // micro-mouvement de caméra à l'épaule
+    uniform float u_time;
+    uniform float u_intro;   // 0 → 1 : la mer monte et dévoile l'image
+    uniform float u_scroll;  // 0 → 1 sur la hauteur du hero
+    uniform vec4 u_rip[8];
+    varying vec2 v_uv;
+
+    const float H = 0.468;   // horizon dans la photo
+
+    float hash(vec2 q) { return fract(sin(dot(q, vec2(127.1, 311.7))) * 43758.5453); }
+    float noise(vec2 q) {
+      vec2 i = floor(q), f = fract(q);
+      vec2 u = f * f * (3.0 - 2.0 * f);
+      return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+                 mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+    }
+    float fbm(vec2 q) {
+      float v = 0.0, a = 0.5;
+      for (int i = 0; i < 4; i++) { v += a * noise(q); q = q * 2.03 + 17.1; a *= 0.5; }
+      return v;
+    }
+    float box(vec2 q, vec2 a, vec2 b, float f) {
+      vec2 s = smoothstep(a - f, a, q) * (1.0 - smoothstep(b, b + f, q));
+      return s.x * s.y;
+    }
+    // Zones qui ne doivent pas bouger : surfeur, rochers, treillis
+    float stillMask(vec2 q, float f) {
+      return max(
+        max(box(q, vec2(0.575, 0.155), vec2(0.815, 0.915), f),
+            box(q, vec2(0.445, 0.86), vec2(1.0, 1.0), f * 1.6)),
+        max(box(q, vec2(0.865, 0.56), vec2(1.0, 1.0), f * 1.6),
+            box(q, vec2(0.86, 0.17), vec2(1.0, 0.6), f)));
+    }
+    float swell(vec2 w, float t) {
+      float a = fbm(vec2(w.x * 0.9, w.y * 1.4 - t * 0.55));
+      float b = fbm(vec2(w.x * 1.7 + 3.0, w.y * 2.3 - t * 0.9) + a * 0.6);
+      return a * 0.65 + b * 0.35;
+    }
+    // Lecture nette (CAS) : récupère le détail de l'image agrandie
+    vec3 tap(vec2 st) {
+      vec2 px = 1.0 / u_img;
+      vec3 cc = texture2D(u_tex, st).rgb;
+      vec3 cn = texture2D(u_tex, st + vec2(0.0, -px.y)).rgb;
+      vec3 cs = texture2D(u_tex, st + vec2(0.0, px.y)).rgb;
+      vec3 cw = texture2D(u_tex, st + vec2(-px.x, 0.0)).rgb;
+      vec3 ce = texture2D(u_tex, st + vec2(px.x, 0.0)).rgb;
+      vec3 mn = min(cc, min(min(cn, cs), min(cw, ce)));
+      vec3 mx = max(cc, max(max(cn, cs), max(cw, ce)));
+      vec3 amt = sqrt(clamp(min(mn, 1.0 - mx) / max(mx, 1e-3), 0.0, 1.0)) * 0.2;
+      return clamp(cc + (4.0 * cc - cn - cs - cw - ce) * amt * 0.25, 0.0, 1.0);
+    }
+
+    void main() {
+      float ca = u_res.x / u_res.y;
+      float ia = u_img.x / u_img.y;
+      vec2 s = (ca > ia ? vec2(1.0, ia / ca) : vec2(ca / ia, 1.0)) * 0.94;
+      vec2 c = clamp(u_focus, s * 0.5, 1.0 - s * 0.5);
+      vec2 uv0 = c + (v_uv - 0.5) * s;
+
+      float still = stillMask(uv0, 0.012);
+      float stillWide = stillMask(uv0, 0.05);
+      float sea = smoothstep(H - 0.004, H + 0.025, uv0.y);
+      float depth = clamp((uv0.y - H) / (1.0 - H), 0.0, 1.0);
+      float t = u_time;
+
+      // Profondeur 2.5D : ciel lointain, premier plan proche, surfeur avec le premier plan
+      float layer = mix(mix(0.12, 0.35, sea), 1.0, sea * depth);
+      layer = mix(layer, 0.9, still);
+      vec2 uv = uv0 + u_look * vec2(0.022, 0.014) * layer
+              + vec2(0.0, u_scroll * 0.05 * (1.0 - layer))
+              + u_cam * (0.6 + layer * 0.4);
+
+      float water = sea * (1.0 - still);
+
+      // Houle en perspective (pente → reflets)
+      float z = 1.0 / (uv.y - H + 0.035);
+      vec2 w = vec2((uv.x - 0.5) * z, z);
+      float e = 0.04;
+      float h0 = swell(w, t);
+      vec2 grad = vec2(swell(w + vec2(e, 0.0), t) - h0, swell(w + vec2(0.0, e), t) - h0) / e;
+      vec2 d = vec2(grad.x * 0.6, grad.y) * (0.003 * pow(depth, 1.25) + 0.0003);
+
+      // Ondes au toucher
+      vec2 asp = vec2(ca, 1.0);
+      float ring = 0.0;
+      for (int i = 0; i < 8; i++) {
+        vec4 r = u_rip[i];
+        float age = t - r.z;
+        if (r.w <= 0.0 || age < 0.0 || age > 4.0) continue;
+        vec2 dv = (v_uv - r.xy) * asp;
+        float dist = length(dv);
+        float front = age * 0.28;
+        float env = (1.0 - smoothstep(front - 0.1, front + 0.02, dist)) * exp(-age * 1.1) * exp(-dist * 5.0);
+        float wv = sin(dist * 70.0 - age * 8.5) * env * r.w;
+        d += normalize(dv + 1e-5) * wv * 0.024;
+        ring += wv;
+      }
+
+      // Advection : l'eau et l'écume avancent vers la plage, les nuages glissent.
+      // Deux phases décalées se relaient pour un mouvement continu, sans saut.
+      float flowWater = sea * (1.0 - stillWide) * pow(depth, 1.4);
+      float flowSky = (1.0 - sea) * (1.0 - stillWide);
+      vec2 flow = vec2((noise(w * 0.4 + t * 0.05) - 0.5) * 0.25, 1.0) * flowWater
+                + vec2(-0.35, 0.0) * flowSky;
+      float jitter = noise(uv0 * vec2(9.0, 22.0)) * 0.7;
+      float ph0 = fract(t * 0.16 + jitter);
+      float ph1 = fract(t * 0.16 + jitter + 0.5);
+      float wb = abs(1.0 - 2.0 * ph0);
+      vec2 base = uv + d * water;
+      vec3 col = mix(tap(base - flow * ph0 * 0.02), tap(base - flow * ph1 * 0.02), wb);
+
+      // Scintillement du soleil sur la pente de la houle
+      vec3 n = normalize(vec3(-grad.x * 1.4, 1.0, -grad.y * 0.9));
+      vec3 sun = normalize(vec3(-0.35, 0.75, -0.55));
+      float glint = pow(max(dot(n, sun), 0.0), 70.0) * (0.25 + depth) * 0.5;
+      glint *= smoothstep(0.55, 0.75, noise(w * 6.0 + t * 1.5));
+      col += vec3(1.0, 0.97, 0.88) * (glint + max(ring, 0.0) * 0.1) * water;
+
+      // L'écume respire
+      float lum = dot(col, vec3(0.299, 0.587, 0.114));
+      col += (noise(w * 3.0 - vec2(0.0, t * 1.2)) - 0.5) * 0.07 * smoothstep(0.62, 0.85, lum) * water;
+
+      // Rayons de lumière discrets dans le ciel
+      vec2 ro = v_uv - vec2(0.18, -0.25);
+      float rays = fbm(vec2(atan(ro.y, ro.x) * 9.0, t * 0.12)) * (1.0 - smoothstep(0.2, 1.3, length(ro)));
+      col += vec3(1.0, 0.95, 0.85) * pow(rays, 3.0) * 0.1 * (1.0 - sea);
+
+      // Embruns flous devant l'objectif (profondeur de champ)
+      float spray = 0.0;
+      for (int i = 0; i < 14; i++) {
+        float fi = float(i);
+        float hs = hash(vec2(fi, 1.3));
+        float hv = hash(vec2(fi, 7.1));
+        float sp = 0.008 + hv * 0.02;
+        vec2 pos = vec2(fract(hs + t * sp + sin(t * 0.3 + fi) * 0.015),
+                        mix(1.05, 0.35, fract(hv + t * sp * 0.5)));
+        float rad = mix(0.006, 0.032, hash(vec2(fi, 3.7)));
+        float dd = length((v_uv - pos) * asp);
+        float tw = 0.5 + 0.5 * sin(t * (0.6 + hv) + fi);
+        spray += (1.0 - smoothstep(rad * 0.55, rad, dd)) * (0.05 + 0.08 * tw) * (0.4 + hash(vec2(fi, 9.0)));
+      }
+      col += vec3(0.95, 0.98, 1.0) * spray;
+
+      // Étalonnage filmique : courbe douce, ombres froides, hautes lumières chaudes
+      vec3 aces = (col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14);
+      col = mix(col, aces, 0.35);
+      lum = dot(col, vec3(0.299, 0.587, 0.114));
+      col += vec3(-0.012, 0.004, 0.022) * (1.0 - lum) + vec3(0.022, 0.012, -0.012) * lum;
+      col *= mix(1.0, 0.86, smoothstep(0.45, 1.05, length((v_uv - 0.5) * vec2(ca * 0.75, 1.0))));
+      col += (hash(gl_FragCoord.xy + fract(t) * 91.0) - 0.5) * 0.026;
+
+      // Intro : la mer monte et dévoile la photo, bord en vague
+      float edge = 1.0 - u_intro * 1.25 + sin(v_uv.x * 9.0 + t * 2.4) * 0.025 + sin(v_uv.x * 23.0 - t * 3.1) * 0.012;
+      float reveal = smoothstep(edge, edge + 0.06, v_uv.y);
+      col = mix(vec3(0.012, 0.067, 0.114), col, reveal);
+      col += vec3(0.75, 0.95, 1.0) * (1.0 - smoothstep(0.0, 0.025, abs(v_uv.y - edge - 0.03))) * 0.35 * (1.0 - u_intro);
+
+      gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
+    }`;
+
+  function wireSea() {
+    const canvas = $("[data-sea]");
     const img = $("[data-hero-img]");
-    const content = $(".hero__content", hero);
-    const lagonImg = $("[data-parallax]");
-    const footWord = $(".foot__word");
-    if (!hero || !img) return;
+    const hint = $("[data-hint]");
+    const root = document.documentElement;
+    if (!canvas || !img) return;
+    if (reduced) { root.classList.add("no-gl"); return; }
 
-    const start = performance.now();
-    const target = { x: 0, y: 0 };
-    const cur = { x: 0, y: 0 };
+    const opts = { antialias: false, alpha: false, premultipliedAlpha: false, powerPreference: "high-performance" };
+    const gl = canvas.getContext("webgl2", opts) || canvas.getContext("webgl", opts);
+    if (!gl) { root.classList.add("no-gl"); return; }
+    const isGL2 = typeof WebGL2RenderingContext !== "undefined" && gl instanceof WebGL2RenderingContext;
 
-    if (finePointer) {
-      hero.addEventListener("pointermove", (e) => {
-        const r = hero.getBoundingClientRect();
-        target.x = (e.clientX - r.left) / r.width - 0.5;
-        target.y = (e.clientY - r.top) / r.height - 0.5;
-      });
-      hero.addEventListener("pointerleave", () => { target.x = 0; target.y = 0; });
+    function shader(type, src) {
+      const sh = gl.createShader(type);
+      gl.shaderSource(sh, src);
+      gl.compileShader(sh);
+      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh));
+      return sh;
     }
 
-    const tick = (now) => {
-      const vh = innerHeight;
-      const sy = scrollY;
-      const intro = clamp((now - start) / 2600, 0, 1);
-      const ease = 1 - Math.pow(1 - intro, 4);
+    let prog;
+    try {
+      prog = gl.createProgram();
+      gl.attachShader(prog, shader(gl.VERTEX_SHADER, VERT));
+      gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, FRAG));
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+    } catch (err) {
+      console.warn("Mer WebGL désactivée :", err.message);
+      root.classList.add("no-gl");
+      return;
+    }
+    gl.useProgram(prog);
 
-      if (sy < vh * 1.2) {
-        cur.x = lerp(cur.x, target.x, 0.06);
-        cur.y = lerp(cur.y, target.y, 0.06);
-        const p = clamp(sy / vh, 0, 1);
-        img.style.setProperty("--px", `${(-cur.x * 28).toFixed(2)}px`);
-        img.style.setProperty("--py", `${(-cur.y * 18 + sy * 0.35).toFixed(2)}px`);
-        img.style.setProperty("--s", (1.2 - ease * 0.14 + p * 0.06).toFixed(4));
-        if (content) {
-          content.style.transform = `translate3d(0, ${(sy * -0.18).toFixed(1)}px, 0)`;
-          content.style.opacity = (1 - p * 1.4).toFixed(3);
-        }
-      }
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, "p");
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
 
-      if (lagonImg) {
-        const r = lagonImg.parentElement.getBoundingClientRect();
-        if (r.bottom > 0 && r.top < vh) {
-          const offset = (r.top + r.height / 2 - vh / 2) * -parseFloat(lagonImg.dataset.parallax);
-          lagonImg.style.setProperty("--y", `${offset.toFixed(1)}px`);
-        }
-      }
+    const U = {};
+    ["u_res", "u_img", "u_focus", "u_look", "u_cam", "u_time", "u_intro", "u_scroll", "u_rip"].forEach((n) => (U[n] = gl.getUniformLocation(prog, n)));
+    const FOCUS = [0.62, 0.42];
+    const HORIZON = 0.468;
+    gl.uniform2f(U.u_focus, FOCUS[0], FOCUS[1]);
 
-      if (footWord) {
-        const r = footWord.getBoundingClientRect();
-        if (r.top < vh) footWord.style.setProperty("--fy", `${(Math.max(0, r.top - vh * 0.55) * 0.25).toFixed(1)}px`);
-      }
+    const ripples = new Float32Array(8 * 4);
+    let next = 0;
+    const t0 = performance.now();
+    const now = () => (performance.now() - t0) / 1000;
+    const addRipple = (x, y, strength) => { ripples.set([x, y, now(), strength], next * 4); next = (next + 1) % 8; };
 
-      requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  }
-
-  // Reflets du soleil qui scintillent sur l'eau (canvas)
-  function wireGlints() {
-    const canvas = $("[data-glints]");
-    const hero = $("[data-hero]");
-    if (!canvas || !hero || !canvas.getContext) return;
-    const ctx = canvas.getContext("2d");
-    let w = 0, h = 0, dpr = 1, glints = [], running = false, raf = 0;
-
-    const HORIZON = 0.34; // part du hero occupée par le ciel et les mornes
-
-    function seed() {
-      const count = Math.round(clamp((w * h) / 9000, 60, 220));
-      glints = Array.from({ length: count }, () => {
-        const depth = Math.random(); // 0 = loin (petit), 1 = près (grand)
-        return {
-          x: Math.random() * w,
-          y: h * (HORIZON + depth * (1 - HORIZON)),
-          r: 0.6 + depth * depth * 3.2,
-          phase: Math.random() * Math.PI * 2,
-          speed: 0.6 + Math.random() * 1.8,
-          drift: (0.05 + depth * 0.25) * (Math.random() < 0.5 ? -1 : 1)
-        };
-      });
+    function horizonOnScreen() {
+      const ca = canvas.width / canvas.height;
+      const ia = img.naturalWidth / img.naturalHeight;
+      const sy = (ca > ia ? ia / ca : 1) * 0.95;
+      const cy = clamp(FOCUS[1], sy / 2, 1 - sy / 2);
+      return clamp((HORIZON - cy) / sy + 0.5, 0, 1);
     }
 
+    // Qualité adaptative : on baisse la résolution si l'appareil peine
+    let dpr = Math.min(devicePixelRatio || 1, finePointer ? 2 : 1.5);
     function resize() {
-      const r = hero.getBoundingClientRect();
-      dpr = Math.min(devicePixelRatio || 1, 2);
-      w = r.width; h = r.height;
-      canvas.width = Math.round(w * dpr);
-      canvas.height = Math.round(h * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      seed();
+      canvas.width = Math.round(hero.clientWidth * dpr);
+      canvas.height = Math.round(hero.clientHeight * dpr);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.uniform2f(U.u_res, canvas.width, canvas.height);
     }
 
-    function draw(now) {
-      const t = now / 1000;
-      ctx.clearRect(0, 0, w, h);
-      for (const g of glints) {
-        const a = Math.pow(Math.max(0, Math.sin(t * g.speed + g.phase)), 6);
-        if (a < 0.02) { g.x += g.drift; continue; }
-        g.x += g.drift;
-        if (g.x < -10) g.x = w + 10; else if (g.x > w + 10) g.x = -10;
+    // Regard : ressort amorti (pas de suivi brut de la souris)
+    const look = { x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0 };
+    let pointerSeen = 0;
+    function stepSpring(dt) {
+      if (performance.now() - pointerSeen > 2500) {
+        const t = now();
+        look.tx = Math.sin(t * 0.21) * 0.35;
+        look.ty = Math.sin(t * 0.17 + 1.3) * 0.2;
+      }
+      const k = 38, c = 11;
+      look.vx += ((look.tx - look.x) * k - look.vx * c) * dt;
+      look.vy += ((look.ty - look.y) * k - look.vy * c) * dt;
+      look.x += look.vx * dt;
+      look.y += look.vy * dt;
+    }
 
-        // halo étiré à l'horizontale, comme un reflet sur la houle
-        const grad = ctx.createRadialGradient(g.x, g.y, 0, g.x, g.y, g.r * 4);
-        grad.addColorStop(0, `rgba(255,255,240,${(a * 0.9).toFixed(3)})`);
-        grad.addColorStop(1, "rgba(255,255,240,0)");
-        ctx.save();
-        ctx.translate(g.x, g.y);
-        ctx.scale(2.4, 0.7);
-        ctx.translate(-g.x, -g.y);
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(g.x, g.y, g.r * 4, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
+    let running = false, raf = 0, ambient = 1.5, last = performance.now();
+    let introStart = -1, frames = 0, slowAcc = 0;
+    function frame(ts) {
+      const dt = Math.min(0.05, (ts - last) / 1000);
+      last = ts;
+      const t = now();
+      if (introStart < 0) introStart = t;
+      const ip = clamp((t - introStart) / 1.9, 0, 1);
+      const intro = 1 - Math.pow(1 - ip, 3);
 
-        // éclat en croix sur les reflets proches
-        if (g.r > 2.2 && a > 0.5) {
-          ctx.strokeStyle = `rgba(255,255,255,${(a * 0.7).toFixed(3)})`;
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(g.x - g.r * 5, g.y); ctx.lineTo(g.x + g.r * 5, g.y);
-          ctx.moveTo(g.x, g.y - g.r * 2.5); ctx.lineTo(g.x, g.y + g.r * 2.5);
-          ctx.stroke();
+      if (t > ambient) {
+        const h = horizonOnScreen();
+        addRipple(0.05 + Math.random() * 0.45, h + 0.1 + Math.random() * (0.88 - h), 0.25);
+        ambient = t + 2.4 + Math.random() * 2;
+      }
+      stepSpring(dt);
+
+      gl.uniform1f(U.u_time, t);
+      gl.uniform1f(U.u_intro, intro);
+      gl.uniform1f(U.u_scroll, clamp(scrollY / hero.offsetHeight, 0, 1));
+      gl.uniform2f(U.u_look, look.x, look.y);
+      // Caméra à l'épaule : somme de sinus aux fréquences non multiples, jamais répétitive
+      gl.uniform2f(U.u_cam,
+        (Math.sin(t * 0.53) * 0.6 + Math.sin(t * 1.31 + 1.7) * 0.3 + Math.sin(t * 2.17 + 0.4) * 0.1) * 0.0018,
+        (Math.sin(t * 0.47 + 2.1) * 0.6 + Math.sin(t * 1.13 + 0.9) * 0.3 + Math.sin(t * 2.71) * 0.1) * 0.0014);
+      gl.uniform4fv(U.u_rip, ripples);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+      // Surveillance : si la moyenne dépasse ~22 ms sur 90 images, on réduit la résolution
+      if (ip >= 1) {
+        frames++; slowAcc += dt;
+        if (frames === 90) {
+          if (slowAcc / frames > 0.022 && dpr > 1) { dpr = Math.max(1, dpr - 0.25); resize(); }
+          frames = 0; slowAcc = 0;
         }
       }
-      raf = requestAnimationFrame(draw);
+      raf = requestAnimationFrame(frame);
     }
-
     function setRunning(on) {
       if (on === running) return;
       running = on;
-      if (on) raf = requestAnimationFrame(draw);
+      if (on) { last = performance.now(); raf = requestAnimationFrame(frame); }
       else cancelAnimationFrame(raf);
     }
 
-    resize();
-    addEventListener("resize", resize);
-    new IntersectionObserver(([e]) => setRunning(e.isIntersecting)).observe(hero);
-    document.addEventListener("visibilitychange", () => setRunning(!document.hidden && hero.getBoundingClientRect().bottom > 0));
+    function start() {
+      const tex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
+      if (isGL2) {
+        // Mipmaps : image nette et sans scintillement quand elle est réduite (mobile)
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        const aniso = gl.getExtension("EXT_texture_filter_anisotropic");
+        if (aniso) gl.texParameterf(gl.TEXTURE_2D, aniso.TEXTURE_MAX_ANISOTROPY_EXT, 4);
+      } else {
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      }
+      gl.uniform2f(U.u_img, img.naturalWidth, img.naturalHeight);
+      resize();
+      canvas.classList.add("is-live");
+      root.classList.add("gl-live");
+
+      new IntersectionObserver(([e]) => setRunning(e.isIntersecting && !document.hidden)).observe(hero);
+      document.addEventListener("visibilitychange", () => setRunning(!document.hidden && scrollY < hero.offsetHeight));
+      addEventListener("resize", resize);
+
+      // Interaction : la souris oriente le regard et laisse un sillage ; clic ou doigt = onde franche
+      let trail = { x: -1, y: -1, t: 0 };
+      const toUv = (e) => {
+        const r = hero.getBoundingClientRect();
+        return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height];
+      };
+      const touched = () => hint && hint.classList.add("is-gone");
+      hero.addEventListener("pointerdown", (e) => {
+        if (e.target.closest("a, button")) return;
+        const [x, y] = toUv(e);
+        addRipple(x, y, 1.1);
+        touched();
+      });
+      if (finePointer) {
+        hero.addEventListener("pointermove", (e) => {
+          const [x, y] = toUv(e);
+          pointerSeen = performance.now();
+          look.tx = x - 0.5;
+          look.ty = y - 0.5;
+          const t = performance.now();
+          if (Math.hypot(x - trail.x, y - trail.y) < 0.035 || t - trail.t < 90 || y < horizonOnScreen()) return;
+          trail = { x, y, t };
+          addRipple(x, y, 0.4);
+          touched();
+        });
+        hero.addEventListener("pointerleave", () => { pointerSeen = 0; });
+      }
+    }
+
+    const ready = () => (img.decode ? img.decode().catch(() => {}) : Promise.resolve()).then(start);
+    if (img.complete && img.naturalWidth) ready();
+    else img.addEventListener("load", ready, { once: true });
+    img.addEventListener("error", () => root.classList.add("no-gl"), { once: true });
   }
 
-  // Cartes produit : inclinaison 3D + reflet qui suit la souris
-  function wireTilt() {
-    if (!finePointer) return;
-    const grid = $("[data-grid]");
-    grid.addEventListener("pointermove", (e) => {
-      const card = e.target.closest(".card");
-      if (!card) return;
-      const inner = $(".card__inner", card);
-      const r = inner.getBoundingClientRect();
-      const x = (e.clientX - r.left) / r.width;
-      const y = (e.clientY - r.top) / r.height;
-      inner.style.setProperty("--ry", `${((x - 0.5) * 10).toFixed(2)}deg`);
-      inner.style.setProperty("--rx", `${((0.5 - y) * 10).toFixed(2)}deg`);
-      inner.style.setProperty("--mx", `${(x * 100).toFixed(1)}%`);
-      inner.style.setProperty("--my", `${(y * 100).toFixed(1)}%`);
+  /* ---------- Interface futuriste : HUD, texte décodé, titres masqués ---------- */
+  const GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#_<>";
+
+  // Le texte se « décode » : chaque lettre tire des glyphes au hasard puis se fige
+  function scramble(el) {
+    const final = el.dataset.text || el.textContent;
+    el.dataset.text = final;
+    if (reduced) { el.textContent = final; return; }
+    const start = performance.now();
+    const dur = 650;
+    const step = (now) => {
+      const p = clamp((now - start) / dur, 0, 1);
+      const fixed = Math.floor(p * final.length);
+      let out = final.slice(0, fixed);
+      for (let i = fixed; i < final.length; i++) {
+        out += final[i] === " " ? " " : GLYPHS[(Math.random() * GLYPHS.length) | 0];
+      }
+      el.textContent = out;
+      if (p < 1) requestAnimationFrame(step);
+      else el.textContent = final;
+    };
+    requestAnimationFrame(step);
+  }
+
+  function maskTitles() {
+    $$("[data-mask]").forEach((el) => {
+      const text = el.textContent.trim();
+      el.setAttribute("aria-label", text);
+      el.innerHTML = text.split(/\s+/).map((w, i) =>
+        `<span class="mw" aria-hidden="true"><span style="--i:${i}">${w}</span></span>`).join(" ");
     });
-    grid.addEventListener("pointerout", (e) => {
-      const card = e.target.closest(".card");
-      if (!card || card.contains(e.relatedTarget)) return;
-      const inner = $(".card__inner", card);
-      inner.style.setProperty("--rx", "0deg");
-      inner.style.setProperty("--ry", "0deg");
+  }
+
+  function wireFuturist() {
+    const hudDrop = $("[data-hud-drop]");
+    if (hudDrop && shop.dropName) hudDrop.textContent = `N°01 / ${shop.dropName}`;
+
+    // Heure locale du visiteur dans le HUD
+    const clock = $("[data-clock]");
+    const fmt = new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    const tick = () => { if (clock) clock.textContent = fmt.format(new Date()); };
+    tick();
+    setInterval(tick, 15000);
+
+    // Décodage du HUD à l'intro, puis des titres et kickers à leur entrée
+    $$(".hud [data-scramble]").forEach((el) => setTimeout(() => scramble(el), 900));
+    const targets = [...$$("[data-mask]"), ...$$("[data-scramble]").filter((el) => !el.closest(".hud"))];
+    if (reduced || !("IntersectionObserver" in window)) return targets.forEach((el) => el.classList.add("is-in"));
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      e.target.classList.add("is-in");
+      if (e.target.hasAttribute("data-scramble")) scramble(e.target);
+      io.unobserve(e.target);
+    }), { rootMargin: "0px 0px -10% 0px" });
+    targets.forEach((el) => io.observe(el));
+  }
+
+  /* ---------- Menu : pastille de section active + menu mobile ---------- */
+  function wireNav() {
+    const nav = $("[data-nav]");
+    const pill = $("[data-pill]");
+    const links = $$("[data-section]", nav);
+
+    function movePill(link) {
+      if (!link) { pill.classList.remove("is-on"); links.forEach((a) => a.classList.remove("is-active")); return; }
+      links.forEach((a) => a.classList.toggle("is-active", a === link));
+      pill.style.translate = `${link.offsetLeft}px 0`;
+      pill.style.width = `${link.offsetWidth}px`;
+      pill.classList.add("is-on");
+    }
+
+    // La section qui occupe le milieu de l'écran est la section active
+    const sections = links.map((a) => document.getElementById(a.dataset.section)).filter(Boolean);
+    const visible = new Map();
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => visible.set(e.target.id, e.isIntersecting));
+      const current = sections.find((sec) => visible.get(sec.id));
+      movePill(current ? links.find((a) => a.dataset.section === current.id) : null);
+    }, { rootMargin: "-45% 0px -50% 0px" });
+    sections.forEach((sec) => io.observe(sec));
+    addEventListener("resize", () => movePill(links.find((a) => a.classList.contains("is-active"))));
+
+    // Menu mobile
+    const burger = $("[data-burger]");
+    const menu = $("[data-menu]");
+    let open = false;
+    function setMenu(on) {
+      if (on === open) return;
+      open = on;
+      burger.setAttribute("aria-expanded", String(on));
+      burger.setAttribute("aria-label", on ? "Fermer le menu" : "Ouvrir le menu");
+      if (on) {
+        menu.hidden = false;
+        menu.classList.remove("is-closing");
+        requestAnimationFrame(() => requestAnimationFrame(() => menu.classList.add("is-open")));
+        document.documentElement.style.overflow = "hidden";
+        setTimeout(() => $("a", menu).focus({ preventScroll: true }), reduced ? 0 : 300);
+      } else {
+        menu.classList.add("is-closing");
+        menu.classList.remove("is-open");
+        document.documentElement.style.overflow = "";
+        setTimeout(() => { if (!open) menu.hidden = true; }, reduced ? 0 : 360);
+      }
+    }
+    burger.addEventListener("click", () => setMenu(!open));
+    menu.addEventListener("click", (e) => { if (e.target.closest("a")) setMenu(false); });
+    addEventListener("keydown", (e) => { if (e.key === "Escape" && open) { setMenu(false); burger.focus(); } });
+    matchMedia("(min-width: 761px)").addEventListener("change", (e) => { if (e.matches) setMenu(false); });
+  }
+
+  /* ---------- Curseur, boutons magnétiques, lumière sur les cartes (souris uniquement) ----------
+     Le point suit la souris sans délai ; l'anneau suit avec un ressort rapide.
+     Le curseur natif n'est masqué qu'une fois le curseur maison affiché. */
+  function spring(k = 170, c = 22) {
+    return { x: 0, y: 0, vx: 0, vy: 0, tx: 0, ty: 0, k, c,
+      step(dt) {
+        this.vx += ((this.tx - this.x) * this.k - this.vx * this.c) * dt;
+        this.vy += ((this.ty - this.y) * this.k - this.vy * this.c) * dt;
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+      },
+      snap(x, y) { this.x = this.tx = x; this.y = this.ty = y; this.vx = this.vy = 0; },
+      rest() { return Math.abs(this.tx - this.x) + Math.abs(this.ty - this.y) + Math.abs(this.vx) + Math.abs(this.vy) < 0.05; }
+    };
+  }
+
+  function wirePointerFx() {
+    if (!finePointer || reduced) return;
+    const root = document.documentElement;
+    const cursor = $("[data-cursor]");
+    const ring = $(".cursor__ring", cursor);
+    const dot = $(".cursor__dot", cursor);
+    const label = $("[data-cursor-label]");
+
+    const ringS = spring(420, 38);
+    const magnets = new Map();
+    let mx = 0, my = 0, raf = 0, last = performance.now(), seen = false;
+
+    const loop = (now) => {
+      const dt = Math.min(0.033, (now - last) / 1000);
+      last = now;
+      ringS.step(dt);
+      ring.style.transform = `translate3d(${ringS.x.toFixed(1)}px, ${ringS.y.toFixed(1)}px, 0)`;
+      let busy = !ringS.rest();
+      magnets.forEach((s, el) => {
+        s.step(dt);
+        el.style.translate = `${s.x.toFixed(2)}px ${s.y.toFixed(2)}px`;
+        if (!s.rest()) busy = true;
+      });
+      raf = busy ? requestAnimationFrame(loop) : 0;
+    };
+    const kick = () => { if (!raf) { last = performance.now(); raf = requestAnimationFrame(loop); } };
+
+    // État selon l'élément sous la souris : « Voir » sur les produits, anneau élargi sur les liens
+    function updateState(target) {
+      if (!target || !target.closest) return;
+      const card = target.closest(".card, .feat");
+      const link = target.closest("a, button, summary, label, [data-hero]");
+      cursor.classList.toggle("is-label", !!card);
+      cursor.classList.toggle("is-link", !card && !!link);
+      if (card && label.textContent !== "Voir") label.textContent = "Voir";
+
+      const media = target.closest(".card__media");
+      if (media) {
+        const r = media.getBoundingClientRect();
+        media.style.setProperty("--mx", `${(((mx - r.left) / r.width) * 100).toFixed(1)}%`);
+        media.style.setProperty("--my", `${(((my - r.top) / r.height) * 100).toFixed(1)}%`);
+      }
+    }
+
+    addEventListener("pointermove", (e) => {
+      if (e.pointerType !== "mouse") return;
+      mx = e.clientX; my = e.clientY;
+      if (!seen) {
+        // Premier mouvement : on place l'anneau directement, puis on masque le curseur natif
+        seen = true;
+        ringS.snap(mx, my);
+        root.classList.add("has-cursor");
+      }
+      dot.style.transform = `translate3d(${mx}px, ${my}px, 0)`;
+      ringS.tx = mx; ringS.ty = my;
+      cursor.classList.remove("is-hidden");
+      updateState(e.target);
+      kick();
+    }, { passive: true });
+
+    // Au scroll sans bouger la souris, l'élément survolé change : on met l'état à jour
+    addEventListener("scroll", () => { if (seen) updateState(document.elementFromPoint(mx, my)); }, { passive: true });
+    document.addEventListener("mouseout", (e) => { if (!e.relatedTarget) cursor.classList.add("is-hidden"); });
+    addEventListener("blur", () => cursor.classList.add("is-hidden"));
+    document.addEventListener("pointerdown", () => cursor.classList.add("is-down"));
+    document.addEventListener("pointerup", () => cursor.classList.remove("is-down"));
+
+    // La fiche produit s'ouvre dans la couche du dessus : le curseur la suit
+    const sheetEl = $("[data-sheet]");
+    new MutationObserver(() => {
+      const host = sheetEl.open ? sheetEl : document.body;
+      if (cursor.parentNode !== host) host.appendChild(cursor);
+    }).observe(sheetEl, { attributes: true, attributeFilter: ["open"] });
+
+    // Boutons magnétiques : attirés vers la souris, reviennent en ressort
+    $$(".btn--primary, .btn--glass, .top__cta, .look__cta").forEach((el) => {
+      const s = spring(150, 14);
+      magnets.set(el, s);
+      el.addEventListener("pointermove", (e) => {
+        const r = el.getBoundingClientRect();
+        s.tx = (e.clientX - (r.left + r.width / 2)) * 0.3;
+        s.ty = (e.clientY - (r.top + r.height / 2)) * 0.4;
+        kick();
+      });
+      el.addEventListener("pointerleave", () => { s.tx = 0; s.ty = 0; kick(); });
     });
+  }
+
+  /* ---------- Fond océan : après la photo, on plonge sous l'eau ----------
+     Caustiques (lumière de surface réfractée), rayons qui ondulent, neige marine
+     en parallaxe, bulles qui remontent. Plus on descend, plus c'est profond et sombre. */
+  const OCEAN_FRAG = `
+    precision highp float;
+    uniform vec2 u_res;
+    uniform float u_time;
+    uniform float u_depth;   // 0 → 1 : progression dans la page après la photo
+    uniform float u_scroll;  // pixels défilés, pour la parallaxe des particules
+    varying vec2 v_uv;
+
+    float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+    vec2 hash2(vec2 p) {
+      p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+      return fract(sin(p) * 43758.5453);
+    }
+    float noise(vec2 q) {
+      vec2 i = floor(q), f = fract(q);
+      vec2 u = f * f * (3.0 - 2.0 * f);
+      return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
+                 mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
+    }
+    // Distance au bord de cellule (F2 - F1) : les filaments lumineux des caustiques
+    float cellEdge(vec2 p, float t) {
+      vec2 i = floor(p), f = fract(p);
+      float d1 = 8.0, d2 = 8.0;
+      for (int y = -1; y <= 1; y++) {
+        for (int x = -1; x <= 1; x++) {
+          vec2 g = vec2(float(x), float(y));
+          vec2 o = hash2(i + g);
+          o = 0.5 + 0.45 * sin(t + 6.2831 * o);
+          float d = length(g + o - f);
+          if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+        }
+      }
+      return d2 - d1;
+    }
+    float caustics(vec2 p, float t) {
+      // Déformation forte : filaments ondulés, jamais géométriques
+      p += vec2(noise(p * 0.6 + t * 0.2), noise(p * 0.6 - t * 0.2 + 5.0)) * 1.2;
+      p += vec2(noise(p * 1.7 - t * 0.3), noise(p * 1.7 + t * 0.25 + 9.0)) * 0.25;
+      float a = 1.0 - smoothstep(0.0, 0.34, cellEdge(p, t * 0.8));
+      float b = 1.0 - smoothstep(0.0, 0.28, cellEdge(p * 1.6 + 3.1, t * 1.1));
+      // Deux couches qui se croisent : la lumière se concentre en nœuds brillants
+      return pow(a * b, 2.0) * 1.8 + pow(a, 3.0) * 0.18;
+    }
+    // Neige marine : une particule au plus par cellule, en couches de profondeur
+    float snow(vec2 uv, float scale, float drift, float t, float par) {
+      vec2 p = uv * scale;
+      p.y += u_scroll * par * scale - t * drift;
+      p.x += sin(p.y * 0.35 + t * 0.2) * 0.3;
+      vec2 id = floor(p);
+      vec2 f = fract(p) - 0.5;
+      float on = step(0.88, hash(id + 3.7));
+      vec2 o = (hash2(id) - 0.5) * 0.6;
+      float r = 0.03 + hash(id + 1.3) * 0.05;
+      float tw = 0.6 + 0.4 * sin(t * (0.5 + hash(id)) + hash(id + 4.0) * 6.0);
+      return on * tw * (1.0 - smoothstep(0.0, r, length(f - o)));
+    }
+    float bubbles(vec2 uv, float t) {
+      vec2 p = uv * vec2(9.0, 4.0);
+      float col = floor(p.x);
+      float speed = 0.35 + hash(vec2(col, 2.0)) * 0.4;
+      p.y += t * speed + u_scroll * 0.0009 * 4.0;
+      vec2 id = floor(p);
+      vec2 f = fract(p) - 0.5;
+      float on = step(0.86, hash(id + 9.1));
+      f.x += sin(t * 2.0 + id.y * 3.0) * 0.12;
+      float r = 0.06 + hash(id) * 0.07;
+      float d = length(f * vec2(1.0, 2.25));
+      float rim = smoothstep(r * 0.45, r * 0.75, d) - smoothstep(r * 0.75, r, d);
+      float spec = 1.0 - smoothstep(0.0, r * 0.35, length(f * vec2(1.0, 2.25) - vec2(-r * 0.35, r * 0.35)));
+      return on * (rim * 0.5 + spec * 0.7);
+    }
+
+    void main() {
+      vec2 uv = v_uv;
+      float ca = u_res.x / u_res.y;
+      vec2 q = vec2(uv.x * ca, uv.y);
+      float t = u_time;
+      float deep = u_depth;
+
+      // Couleur de l'eau : lumineuse près de la surface (haut), profonde vers le bas et au fil du scroll
+      vec3 shallow = vec3(0.035, 0.24, 0.32);
+      vec3 mid = vec3(0.012, 0.11, 0.17);
+      vec3 abyss = vec3(0.004, 0.035, 0.06);
+      float y = clamp(uv.y + deep * 0.9, 0.0, 1.6);
+      vec3 col = mix(shallow, mid, smoothstep(0.0, 0.6, y));
+      col = mix(col, abyss, smoothstep(0.5, 1.5, y));
+
+      // Rayons de lumière depuis la surface, qui ondulent
+      float slant = uv.x * 1.0 + uv.y * 0.35;
+      float rays = noise(vec2(slant * 7.0 + t * 0.12, t * 0.08)) * noise(vec2(slant * 13.0 - t * 0.2, 3.0));
+      rays = pow(rays, 1.8) * (1.0 - smoothstep(0.0, 0.95, uv.y)) * (1.0 - deep * 0.75);
+      col += vec3(0.35, 0.75, 0.85) * rays * 0.45;
+
+      // Caustiques projetées : fortes en haut, s'éteignent en profondeur
+      float c = caustics(q * 3.2 + vec2(0.0, u_scroll * 0.0004), t * 0.6);
+      float cfade = (1.0 - smoothstep(0.05, 0.85, uv.y)) * (1.0 - deep * 0.8);
+      col += vec3(0.5, 0.88, 0.92) * c * cfade * 0.16;
+
+      // Neige marine en trois couches (près = plus gros, plus rapide)
+      float s = snow(q, 30.0, 0.12, t, 0.0004) * 0.18
+              + snow(q + 7.0, 16.0, 0.18, t, 0.0007) * 0.22
+              + snow(q + 13.0, 7.0, 0.26, t, 0.0012) * 0.12;
+      col += vec3(0.55, 0.8, 0.85) * s * (0.6 + 0.4 * (1.0 - deep));
+
+      // Bulles qui remontent
+      col += vec3(0.75, 0.95, 1.0) * bubbles(q, t) * 0.35;
+
+      // Vignette, grain fin
+      col *= mix(1.0, 0.7, smoothstep(0.35, 1.0, length((uv - 0.5) * vec2(ca * 0.6, 1.0))));
+      col += (hash(gl_FragCoord.xy + fract(t) * 37.0) - 0.5) * 0.012;
+
+      gl_FragColor = vec4(col, 1.0);
+    }`;
+
+  function wireOcean() {
+    const canvas = $("[data-ocean]");
+    if (!canvas) return;
+    if (reduced) { canvas.classList.add("is-live"); return; } // dégradé CSS seul, immobile
+
+    const gl = canvas.getContext("webgl", { antialias: false, alpha: false, powerPreference: "low-power" });
+    if (!gl) { canvas.classList.add("is-live"); return; }
+
+    function shader(type, src) {
+      const sh = gl.createShader(type);
+      gl.shaderSource(sh, src);
+      gl.compileShader(sh);
+      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh));
+      return sh;
+    }
+    let prog;
+    try {
+      prog = gl.createProgram();
+      gl.attachShader(prog, shader(gl.VERTEX_SHADER, VERT));
+      gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, OCEAN_FRAG));
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+    } catch (err) {
+      console.warn("Océan WebGL désactivé :", err.message);
+      canvas.classList.add("is-live");
+      return;
+    }
+    gl.useProgram(prog);
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, "p");
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    const uRes = gl.getUniformLocation(prog, "u_res");
+    const uTime = gl.getUniformLocation(prog, "u_time");
+    const uDepth = gl.getUniformLocation(prog, "u_depth");
+    const uScroll = gl.getUniformLocation(prog, "u_scroll");
+
+    // Fond doux : on rend à résolution réduite, le navigateur agrandit (moins de calcul)
+    let scale = finePointer ? 0.6 : 0.45;
+    function resize() {
+      canvas.width = Math.round(innerWidth * scale);
+      canvas.height = Math.round(innerHeight * scale);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.uniform2f(uRes, canvas.width, canvas.height);
+    }
+    resize();
+    addEventListener("resize", resize);
+
+    const t0 = performance.now();
+    let raf = 0, running = false, frames = 0, acc = 0, last = performance.now();
+    function frame(now) {
+      const dt = (now - last) / 1000; last = now;
+      const heroH = hero.offsetHeight;
+      const max = Math.max(1, document.documentElement.scrollHeight - innerHeight - heroH);
+      gl.uniform1f(uTime, (now - t0) / 1000);
+      gl.uniform1f(uDepth, clamp((scrollY - heroH) / max, 0, 1));
+      gl.uniform1f(uScroll, scrollY);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      // Si l'appareil peine, on baisse encore la résolution
+      frames++; acc += dt;
+      if (frames === 90) {
+        if (acc / frames > 0.024 && scale > 0.3) { scale -= 0.1; resize(); }
+        frames = 0; acc = 0;
+      }
+      raf = requestAnimationFrame(frame);
+    }
+    function setRunning(on) {
+      if (on === running) return;
+      running = on;
+      if (on) { last = performance.now(); raf = requestAnimationFrame(frame); }
+      else cancelAnimationFrame(raf);
+    }
+    // L'océan ne tourne que quand on a quitté (en partie) la photo
+    const check = () => setRunning(!document.hidden && scrollY > hero.offsetHeight * 0.4);
+    addEventListener("scroll", check, { passive: true });
+    document.addEventListener("visibilitychange", check);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    canvas.classList.add("is-live");
+    check();
   }
 
   /* ---------- Infos boutique ---------- */
@@ -406,13 +1175,16 @@
   renderFeatured();
   renderGrid();
   wireFilters();
+  wireDrop();
   wireSheet();
-  splitTitle();
-  wireHeader();
-  wireReveal();
-  if (!reduced) {
-    wireHeroMotion();
-    wireGlints();
-    wireTilt();
-  }
+  splitWords();
+  maskTitles();
+  wireScroll();
+  wireReveals();
+  wireSea();
+  wireFuturist();
+  wireNav();
+  wirePointerFx();
+  wireOcean();
+  addEventListener("load", layoutDrop);
 })();

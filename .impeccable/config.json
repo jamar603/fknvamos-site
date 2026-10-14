@@ -20,6 +20,24 @@
         ],
         "createdAt": "2026-10-14T18:02:46.907Z",
         "reason": "Claude triage: only remaining shadow is neutral navy elevation on light cards; dark-page read comes from hero photo"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-10-14T18:38:47.256Z",
+        "reason": "Claude triage: static scan reads unstyled sizes; rendered h1 is clamp(4.5rem,17vw,15.5rem), h2 clamp(2.5rem,6.4vw,5rem), verified in screenshots"
+      },
+      {
+        "rule": "repeating-stripes-gradient",
+        "value": "*",
+        "files": [
+          "assets/css/styles.css"
+        ],
+        "createdAt": "2026-10-14T18:56:29.658Z",
+        "reason": "Claude triage: elliptical repeating-radial contour lines are the island topographic-map motif for the futuristic island theme the user asked for, not decorative stripes; 3-4% opacity, verified in screenshots"
       }
     ]
   }
