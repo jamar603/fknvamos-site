@@ -1,7 +1,7 @@
 # FKN VAMOS — site boutique
 
 Site vitrine et boutique de la marque streetwear **FKN VAMOS** ([@fknvamos](https://instagram.com/fknvamos)).
-Thème « la plage » : le nom coule dans la mer, les produits sont posés sur des serviettes, le stock s'affiche avec des drapeaux de plage.
+Thème « lagon caraïbe » : hero plein écran sur la photo `assets/img/header-galion.jpg`, avec parallax, reflets animés sur l'eau (canvas) et titre animé lettre par lettre.
 
 Le site est 100 % statique (HTML, CSS, JS). Pas de build, pas de serveur. Le paiement passe par **Stripe Payment Links**.
 

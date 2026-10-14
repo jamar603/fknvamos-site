@@ -24,7 +24,7 @@
   function ink(hex) {
     const n = parseInt(hex.replace("#", ""), 16);
     const l = 0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255);
-    return l > 150 ? "#0a1440" : "#f6f7fb";
+    return l > 150 ? "#04223a" : "#f5fbfb";
   }
 
   function garment(p) {
@@ -35,13 +35,13 @@
         ? `<text x="120" y="104" font-size="16" text-anchor="middle">FKN</text>`
         : `<text x="120" y="112" font-size="19" text-anchor="middle">FKN</text><text x="120" y="132" font-size="19" text-anchor="middle">VAMOS</text>`;
     return `<svg class="garment" viewBox="0 0 240 210" role="img" aria-label="${p.name}, visuel provisoire">
-      <path d="${SHAPES[p.type] || SHAPES.tee}" fill="${p.color}" stroke="#0a1440" stroke-width="3" stroke-linejoin="round"/>
-      <g fill="${ink(p.color)}" font-family="Shrikhand, cursive">${print}</g>
+      <path d="${SHAPES[p.type] || SHAPES.tee}" fill="${p.color}" stroke="#04223a" stroke-width="3" stroke-linejoin="round"/>
+      <g fill="${ink(p.color)}" font-family="Bricolage Grotesque, sans-serif" font-weight="800">${print}</g>
     </svg>`;
   }
 
-  function towelStyle(p) {
-    const [a, b] = p.towel || ["#ef3b2d", "#f6f7fb"];
+  function artStyle(p) {
+    const [a, b] = p.towel || ["#12b5bf", "#ffd84a"];
     return `--t1:${a};--t2:${b}`;
   }
 
@@ -76,7 +76,7 @@
         <legend>Taille</legend>
         <div class="sizes__row">${sizes}</div>
       </fieldset>
-      <button class="btn btn--red buy" data-buy="${p.id}" ${st.buy ? "" : "disabled"}>
+      <button class="btn btn--dark buy" data-buy="${p.id}" ${st.buy ? "" : "disabled"}>
         ${st.buy ? `Acheter · ${money.format(p.price)}` : "Épuisé"}
       </button>`;
   }
@@ -91,17 +91,23 @@
     });
   }
 
-  /* ---------- Produit en vedette (hero) ---------- */
+  /* ---------- Produit vedette ---------- */
+  function badge(p) {
+    return `<span class="badge badge--${p.stock}">${(STOCK[p.stock] || STOCK.dispo).label}</span>`;
+  }
+
   function renderFeatured() {
     const slot = $("[data-featured]");
     const p = products.find((x) => x.featured) || products[0];
     if (!slot || !p) return;
     slot.innerHTML = `
-      <article class="feat towel" style="${towelStyle(p)}">
-        <div class="towel__art">${garment(p)}</div>
-        <div class="feat__info">
-          <span class="flag flag--${p.stock}">${(STOCK[p.stock] || STOCK.dispo).label}</span>
+      <article class="feat">
+        <div class="art reveal" style="${artStyle(p)}">${garment(p)}</div>
+        <div class="feat__info reveal" style="--d:1">
+          <p class="eyebrow">Pièce phare du drop</p>
+          ${badge(p)}
           <h2 class="feat__name">${p.name}</h2>
+          <p class="feat__price">${money.format(p.price)}</p>
           ${buyBlock(p, "feat")}
         </div>
       </article>`;
@@ -113,14 +119,17 @@
     const grid = $("[data-grid]");
     const list = products.filter((p) => filter === "all" || p.type === filter);
     grid.innerHTML = list.map((p, i) => `
-      <li class="towels__item" style="--i:${i}">
-        <button class="towel towel--card ${p.stock === "epuise" ? "is-out" : ""}" style="${towelStyle(p)}" data-open="${p.id}"
+      <li class="grid__item" style="--i:${i}">
+        <button class="card ${p.stock === "epuise" ? "is-out" : ""}" data-open="${p.id}"
           aria-label="${p.name}, ${money.format(p.price)}, ${(STOCK[p.stock] || STOCK.dispo).label}">
-          <span class="flag flag--${p.stock}">${(STOCK[p.stock] || STOCK.dispo).label}</span>
-          <span class="towel__art">${garment(p)}</span>
-          <span class="towel__tag">
-            <span class="towel__name">${p.name}</span>
-            <span class="towel__price">${money.format(p.price)}</span>
+          <span class="card__inner">
+            ${badge(p)}
+            <span class="art" style="${artStyle(p)}">${garment(p)}</span>
+            <span class="card__shine"></span>
+          </span>
+          <span class="card__meta">
+            <span class="card__name">${p.name}</span>
+            <span class="card__price">${money.format(p.price)}</span>
           </span>
         </button>
       </li>`).join("");
@@ -143,9 +152,9 @@
     if (!p) return;
     const body = $("[data-sheet-body]");
     body.innerHTML = `
-      <div class="sheet__art towel" style="${towelStyle(p)}"><div class="towel__art">${garment(p)}</div></div>
+      <div class="art" style="${artStyle(p)}">${garment(p)}</div>
       <div class="sheet__info">
-        <span class="flag flag--${p.stock}">${(STOCK[p.stock] || STOCK.dispo).label}</span>
+        ${badge(p)}
         <h2 id="sheet-title" class="sheet__name">${p.name}</h2>
         <p class="sheet__price">${money.format(p.price)}</p>
         ${buyBlock(p, "sheet")}
@@ -177,21 +186,212 @@
     toastTimer = setTimeout(() => el.classList.remove("is-on"), 3600);
   }
 
-  /* ---------- Coucher de soleil au scroll ---------- */
-  function wireSunset() {
-    const foot = $("[data-sunset]");
-    if (!foot || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    let raf = 0;
-    const update = () => {
-      raf = 0;
-      const r = foot.getBoundingClientRect();
+  /* ---------- Animations ---------- */
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const finePointer = matchMedia("(hover: hover) and (pointer: fine)").matches;
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+
+  // Titre découpé en lettres pour l'entrée en cascade
+  function splitTitle() {
+    $$("[data-split]").forEach((el) => {
+      const text = el.textContent;
+      el.setAttribute("aria-label", text);
+      let i = 0;
+      el.innerHTML = text.split(" ").map((word) => `<span class="word" aria-hidden="true">${
+        [...word].map((c) => `<span class="ch" style="--i:${i++}">${c}</span>`).join("")
+      }</span>`).join(" ");
+    });
+  }
+
+  // Header transparent sur le hero, givré ensuite
+  function wireHeader() {
+    const top = $("[data-top]");
+    const hero = $("[data-hero]");
+    if (!top || !hero) return;
+    new IntersectionObserver(([e]) => top.classList.toggle("is-solid", !e.isIntersecting), {
+      rootMargin: "-72px 0px 0px 0px"
+    }).observe(hero);
+  }
+
+  // Apparition des blocs au scroll
+  function wireReveal() {
+    const els = $$(".reveal");
+    if (reduced || !("IntersectionObserver" in window)) return els.forEach((el) => el.classList.add("is-in"));
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      e.target.classList.add("is-in");
+      io.unobserve(e.target);
+    }), { threshold: 0.15, rootMargin: "0px 0px -8% 0px" });
+    els.forEach((el) => io.observe(el));
+  }
+
+  // Hero : zoom d'entrée, parallax souris + scroll, contenu qui s'efface
+  function wireHeroMotion() {
+    const hero = $("[data-hero]");
+    const img = $("[data-hero-img]");
+    const content = $(".hero__content", hero);
+    const lagonImg = $("[data-parallax]");
+    const footWord = $(".foot__word");
+    if (!hero || !img) return;
+
+    const start = performance.now();
+    const target = { x: 0, y: 0 };
+    const cur = { x: 0, y: 0 };
+
+    if (finePointer) {
+      hero.addEventListener("pointermove", (e) => {
+        const r = hero.getBoundingClientRect();
+        target.x = (e.clientX - r.left) / r.width - 0.5;
+        target.y = (e.clientY - r.top) / r.height - 0.5;
+      });
+      hero.addEventListener("pointerleave", () => { target.x = 0; target.y = 0; });
+    }
+
+    const tick = (now) => {
       const vh = innerHeight;
-      const p = Math.min(1, Math.max(0, (vh - r.top) / (r.height + vh * 0.25)));
-      foot.style.setProperty("--p", p.toFixed(3));
+      const sy = scrollY;
+      const intro = clamp((now - start) / 2600, 0, 1);
+      const ease = 1 - Math.pow(1 - intro, 4);
+
+      if (sy < vh * 1.2) {
+        cur.x = lerp(cur.x, target.x, 0.06);
+        cur.y = lerp(cur.y, target.y, 0.06);
+        const p = clamp(sy / vh, 0, 1);
+        img.style.setProperty("--px", `${(-cur.x * 28).toFixed(2)}px`);
+        img.style.setProperty("--py", `${(-cur.y * 18 + sy * 0.35).toFixed(2)}px`);
+        img.style.setProperty("--s", (1.2 - ease * 0.14 + p * 0.06).toFixed(4));
+        if (content) {
+          content.style.transform = `translate3d(0, ${(sy * -0.18).toFixed(1)}px, 0)`;
+          content.style.opacity = (1 - p * 1.4).toFixed(3);
+        }
+      }
+
+      if (lagonImg) {
+        const r = lagonImg.parentElement.getBoundingClientRect();
+        if (r.bottom > 0 && r.top < vh) {
+          const offset = (r.top + r.height / 2 - vh / 2) * -parseFloat(lagonImg.dataset.parallax);
+          lagonImg.style.setProperty("--y", `${offset.toFixed(1)}px`);
+        }
+      }
+
+      if (footWord) {
+        const r = footWord.getBoundingClientRect();
+        if (r.top < vh) footWord.style.setProperty("--fy", `${(Math.max(0, r.top - vh * 0.55) * 0.25).toFixed(1)}px`);
+      }
+
+      requestAnimationFrame(tick);
     };
-    addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(update); }, { passive: true });
-    addEventListener("resize", update);
-    update();
+    requestAnimationFrame(tick);
+  }
+
+  // Reflets du soleil qui scintillent sur l'eau (canvas)
+  function wireGlints() {
+    const canvas = $("[data-glints]");
+    const hero = $("[data-hero]");
+    if (!canvas || !hero || !canvas.getContext) return;
+    const ctx = canvas.getContext("2d");
+    let w = 0, h = 0, dpr = 1, glints = [], running = false, raf = 0;
+
+    const HORIZON = 0.34; // part du hero occupée par le ciel et les mornes
+
+    function seed() {
+      const count = Math.round(clamp((w * h) / 9000, 60, 220));
+      glints = Array.from({ length: count }, () => {
+        const depth = Math.random(); // 0 = loin (petit), 1 = près (grand)
+        return {
+          x: Math.random() * w,
+          y: h * (HORIZON + depth * (1 - HORIZON)),
+          r: 0.6 + depth * depth * 3.2,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.6 + Math.random() * 1.8,
+          drift: (0.05 + depth * 0.25) * (Math.random() < 0.5 ? -1 : 1)
+        };
+      });
+    }
+
+    function resize() {
+      const r = hero.getBoundingClientRect();
+      dpr = Math.min(devicePixelRatio || 1, 2);
+      w = r.width; h = r.height;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      seed();
+    }
+
+    function draw(now) {
+      const t = now / 1000;
+      ctx.clearRect(0, 0, w, h);
+      for (const g of glints) {
+        const a = Math.pow(Math.max(0, Math.sin(t * g.speed + g.phase)), 6);
+        if (a < 0.02) { g.x += g.drift; continue; }
+        g.x += g.drift;
+        if (g.x < -10) g.x = w + 10; else if (g.x > w + 10) g.x = -10;
+
+        // halo étiré à l'horizontale, comme un reflet sur la houle
+        const grad = ctx.createRadialGradient(g.x, g.y, 0, g.x, g.y, g.r * 4);
+        grad.addColorStop(0, `rgba(255,255,240,${(a * 0.9).toFixed(3)})`);
+        grad.addColorStop(1, "rgba(255,255,240,0)");
+        ctx.save();
+        ctx.translate(g.x, g.y);
+        ctx.scale(2.4, 0.7);
+        ctx.translate(-g.x, -g.y);
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(g.x, g.y, g.r * 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // éclat en croix sur les reflets proches
+        if (g.r > 2.2 && a > 0.5) {
+          ctx.strokeStyle = `rgba(255,255,255,${(a * 0.7).toFixed(3)})`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(g.x - g.r * 5, g.y); ctx.lineTo(g.x + g.r * 5, g.y);
+          ctx.moveTo(g.x, g.y - g.r * 2.5); ctx.lineTo(g.x, g.y + g.r * 2.5);
+          ctx.stroke();
+        }
+      }
+      raf = requestAnimationFrame(draw);
+    }
+
+    function setRunning(on) {
+      if (on === running) return;
+      running = on;
+      if (on) raf = requestAnimationFrame(draw);
+      else cancelAnimationFrame(raf);
+    }
+
+    resize();
+    addEventListener("resize", resize);
+    new IntersectionObserver(([e]) => setRunning(e.isIntersecting)).observe(hero);
+    document.addEventListener("visibilitychange", () => setRunning(!document.hidden && hero.getBoundingClientRect().bottom > 0));
+  }
+
+  // Cartes produit : inclinaison 3D + reflet qui suit la souris
+  function wireTilt() {
+    if (!finePointer) return;
+    const grid = $("[data-grid]");
+    grid.addEventListener("pointermove", (e) => {
+      const card = e.target.closest(".card");
+      if (!card) return;
+      const inner = $(".card__inner", card);
+      const r = inner.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width;
+      const y = (e.clientY - r.top) / r.height;
+      inner.style.setProperty("--ry", `${((x - 0.5) * 10).toFixed(2)}deg`);
+      inner.style.setProperty("--rx", `${((0.5 - y) * 10).toFixed(2)}deg`);
+      inner.style.setProperty("--mx", `${(x * 100).toFixed(1)}%`);
+      inner.style.setProperty("--my", `${(y * 100).toFixed(1)}%`);
+    });
+    grid.addEventListener("pointerout", (e) => {
+      const card = e.target.closest(".card");
+      if (!card || card.contains(e.relatedTarget)) return;
+      const inner = $(".card__inner", card);
+      inner.style.setProperty("--rx", "0deg");
+      inner.style.setProperty("--ry", "0deg");
+    });
   }
 
   /* ---------- Infos boutique ---------- */
@@ -207,5 +407,12 @@
   renderGrid();
   wireFilters();
   wireSheet();
-  wireSunset();
+  splitTitle();
+  wireHeader();
+  wireReveal();
+  if (!reduced) {
+    wireHeroMotion();
+    wireGlints();
+    wireTilt();
+  }
 })();
