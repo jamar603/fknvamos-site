@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>FKN VAMOS — Boutique officielle</title>
+  <meta name="description" content="FKN VAMOS, streetwear né sur Instagram. Le nouveau drop est en ligne.">
+  <meta name="theme-color" content="#1238d6">
+  <meta property="og:title" content="FKN VAMOS">
+  <meta property="og:description" content="Le nouveau drop est en ligne.">
+  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=Shrikhand&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <a class="skip" href="#drop">Aller à la boutique</a>
+
+  <!-- Filtre « eau » pour la partie immergée du nom -->
+  <svg class="defs" aria-hidden="true" focusable="false">
+    <filter id="ripple" x="-5%" y="-20%" width="110%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.006 0.09" numOctaves="1" seed="3" result="n">
+        <animate attributeName="baseFrequency" dur="9s" values="0.006 0.09;0.008 0.12;0.006 0.09" repeatCount="indefinite"/>
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="16" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </svg>
+
+  <header class="top">
+    <a class="top__mark" href="#" aria-label="FKN VAMOS, accueil">FKN<span>VAMOS</span></a>
+    <nav class="top__nav" aria-label="Navigation principale">
+      <a href="#drop">Le drop</a>
+      <a href="#plage">Sur la plage</a>
+      <a href="#infos">Infos</a>
+    </nav>
+    <a class="top__ig" data-ig href="https://instagram.com/fknvamos" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" class="fill"/></svg>
+      <span>@fknvamos</span>
+    </a>
+  </header>
+
+  <main>
+    <!-- HERO : ciel, avion-banderole, nom qui coule sous les vagues -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="sky">
+        <div class="sun" aria-hidden="true"></div>
+        <div class="plane" aria-hidden="true">
+          <svg class="plane__body" viewBox="0 0 64 28"><path d="M4 14 L40 11 L52 4 L56 4 L50 12 L60 13 Q63 14 60 15 L50 16 L56 24 L52 24 L40 17 L4 14 Z"/></svg>
+          <span class="plane__rope"></span>
+          <span class="plane__banner" data-drop-name>Drop Été 26</span>
+        </div>
+      </div>
+
+      <h1 id="hero-title" class="wordmark">
+        <span class="wordmark__dry" aria-hidden="true"><span>FKN</span> <span>VAMOS</span></span>
+        <span class="wordmark__wet" aria-hidden="true"><span>FKN</span> <span>VAMOS</span></span>
+        <span class="sr">FKN VAMOS</span>
+      </h1>
+
+      <svg class="waves" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+          <path class="wave wave--back" d="M0 60 Q 90 30 180 60 T 360 60 T 540 60 T 720 60 T 900 60 T 1080 60 T 1260 60 T 1440 60 T 1620 60 T 1800 60 T 1980 60 T 2160 60 T 2340 60 T 2520 60 T 2700 60 T 2880 60 V 120 H 0 Z"/>
+          <path class="wave wave--front" d="M0 70 Q 120 40 240 70 T 480 70 T 720 70 T 960 70 T 1200 70 T 1440 70 T 1680 70 T 1920 70 T 2160 70 T 2400 70 T 2640 70 T 2880 70 V 120 H 0 Z"/>
+        </svg>
+
+      <div class="sea">
+
+
+        <div class="hero__deck">
+          <div class="hero__pitch">
+            <p class="hero__line">Né sur Instagram, taillé pour l'été. Le nouveau drop vient d'arriver sur le sable.</p>
+            <a class="btn btn--sun" href="#drop">Voir le drop</a>
+          </div>
+          <div class="hero__featured" data-featured></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LE DROP -->
+    <section id="drop" class="drop" aria-labelledby="drop-title">
+      <div class="drop__head">
+        <h2 id="drop-title" class="h2">Le drop</h2>
+        <div class="flags" aria-label="Légende du stock">
+          <span class="flag flag--dispo">Dispo</span>
+          <span class="flag flag--derniers">Dernières pièces</span>
+          <span class="flag flag--epuise">Épuisé</span>
+        </div>
+      </div>
+      <div class="filters" role="group" aria-label="Filtrer par type">
+        <button class="chip is-on" data-filter="all" aria-pressed="true">Tout</button>
+        <button class="chip" data-filter="tee" aria-pressed="false">T-shirts</button>
+        <button class="chip" data-filter="hoodie" aria-pressed="false">Hoodies</button>
+        <button class="chip" data-filter="shorts" aria-pressed="false">Shorts</button>
+        <button class="chip" data-filter="cap" aria-pressed="false">Casquettes</button>
+      </div>
+      <ul class="towels" data-grid></ul>
+      <p class="empty" data-empty hidden>Rien sur le sable pour ce filtre. Essaie « Tout ».</p>
+    </section>
+
+    <!-- SUR LA PLAGE (lookbook / Instagram) -->
+    <section id="plage" class="plage" aria-labelledby="plage-title">
+      <h2 id="plage-title" class="h2 h2--light">Sur la plage</h2>
+      <p class="plage__lede">Les photos du crew arrivent ici. En attendant, tout se passe sur Instagram.</p>
+      <div class="polaroids">
+        <figure class="polaroid" style="--r:-4deg;--c:#ffd23f"><div class="polaroid__img" data-ph="Photo 1"></div><figcaption>Photo à venir</figcaption></figure>
+        <figure class="polaroid" style="--r:3deg;--c:#ef3b2d"><div class="polaroid__img" data-ph="Photo 2"></div><figcaption>Photo à venir</figcaption></figure>
+        <figure class="polaroid" style="--r:-2deg;--c:#f6f7fb"><div class="polaroid__img" data-ph="Photo 3"></div><figcaption>Photo à venir</figcaption></figure>
+        <figure class="polaroid" style="--r:5deg;--c:#0a1440"><div class="polaroid__img" data-ph="Photo 4"></div><figcaption>Photo à venir</figcaption></figure>
+      </div>
+      <a class="btn btn--foam" data-ig href="https://instagram.com/fknvamos" target="_blank" rel="noopener">Suivre @fknvamos</a>
+    </section>
+
+    <!-- INFOS -->
+    <section id="infos" class="infos" aria-labelledby="infos-title">
+      <h2 id="infos-title" class="h2">Infos</h2>
+      <div class="faq">
+        <details>
+          <summary>Livraison</summary>
+          <p>[À compléter avec le client : zones, délais, prix de la livraison.]</p>
+        </details>
+        <details>
+          <summary>Retours et échanges</summary>
+          <p>[À compléter avec le client : délai de retour, conditions, procédure.]</p>
+        </details>
+        <details>
+          <summary>Guide des tailles</summary>
+          <p>[À compléter avec le client : tableau des mesures par produit.]</p>
+        </details>
+        <details>
+          <summary>Paiement</summary>
+          <p>Paiement sécurisé par Stripe : carte bancaire, Apple Pay, Google Pay selon ton appareil.</p>
+        </details>
+        <details>
+          <summary>Contact</summary>
+          <p>Écris-nous en DM sur <a data-ig href="https://instagram.com/fknvamos" target="_blank" rel="noopener">Instagram</a><span data-email-line></span>.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER : coucher de soleil lié au scroll -->
+  <footer class="sunset" data-sunset>
+    <div class="sunset__sun" aria-hidden="true"></div>
+    <p class="sunset__word">Vamos.</p>
+    <div class="sunset__base">
+      <span>© <span data-year></span> FKN VAMOS</span>
+      <a data-ig href="https://instagram.com/fknvamos" target="_blank" rel="noopener">Instagram</a>
+    </div>
+  </footer>
+
+  <!-- Fiche produit -->
+  <dialog class="sheet" data-sheet aria-labelledby="sheet-title">
+    <form method="dialog" class="sheet__close-wrap">
+      <button class="sheet__close" aria-label="Fermer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+      </button>
+    </form>
+    <div class="sheet__body" data-sheet-body></div>
+  </dialog>
+
+  <div class="toast" role="status" aria-live="polite" data-toast></div>
+
+  <script src="data/products.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
