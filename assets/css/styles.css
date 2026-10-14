@@ -9,7 +9,7 @@
   --deep-2: #0a2638;
   --abyss: #04223a;
   --ink: #e7f3f4;          /* texte principal */
-  --muted: #93b3bd;        /* texte secondaire (contraste AA sur --night) */
+  --muted: #b3ccd3;        /* texte secondaire (AA sur le lagon et le fond sombre) */
   --lagoon: #2fd6dc;       /* accent turquoise */
   --sun: #ffd84a;
   --coral: #d63a1c;        /* action principale (texte blanc AA) */
@@ -51,11 +51,11 @@ body {
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
 }
-/* Fond océan WebGL, derrière tout le contenu après la photo */
+/* Fond WebGL (soleil filtré par les palmes), derrière tout le contenu après la photo */
 .ocean {
   position: fixed; inset: 0; z-index: -1; width: 100%; height: 100%;
   pointer-events: none; opacity: 0; transition: opacity 800ms ease;
-  background: linear-gradient(180deg, #062a3c 0%, #031520 60%, #020b12 100%);
+  background: linear-gradient(180deg, #0a262e 0%, #071b26 50%, #030e16 100%);
 }
 .ocean.is-live { opacity: 1; }
 
@@ -251,7 +251,7 @@ section[id] { scroll-margin-top: 72px; }
   position: absolute; inset: 0; z-index: -1; pointer-events: none;
   background:
     linear-gradient(180deg, rgb(3 17 29 / .4) 0%, rgb(3 17 29 / 0) 20%),
-    linear-gradient(0deg, #062a3c 0%, rgb(6 42 60 / .5) 28%, rgb(3 17 29 / 0) 60%),
+    linear-gradient(0deg, #0a262e 0%, rgb(10 38 46 / .5) 28%, rgb(3 17 29 / 0) 60%),
     linear-gradient(90deg, rgb(3 17 29 / .55) 0%, rgb(3 17 29 / 0) 55%);
 }
 

@@ -8,9 +8,9 @@
   <meta name="theme-color" content="#03111d">
   <meta property="og:title" content="FKN VAMOS">
   <meta property="og:description" content="Le nouveau drop est en ligne.">
-  <meta property="og:image" content="assets/img/wallpaper.jpg">
+  <meta property="og:image" content="assets/img/header-galion.jpg">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="preload" as="image" href="assets/img/wallpaper-hd.jpg" imagesrcset="assets/img/wallpaper.jpg 960w, assets/img/wallpaper-hd.jpg 1920w" imagesizes="100vw" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/img/header-galion.jpg" fetchpriority="high">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=JetBrains+Mono:wght@400..700&family=Manrope:wght@400..800&display=swap" rel="stylesheet">
@@ -19,7 +19,7 @@
 <body>
   <a class="skip" href="#drop">Aller à la boutique</a>
 
-  <!-- Fond océan (après la photo) : plongée sous l'eau en WebGL -->
+  <!-- Fond du site (après la photo) : soleil filtré par les palmes, en WebGL -->
   <canvas class="ocean" data-ocean aria-hidden="true"></canvas>
 
   <!-- Menu : île flottante, toujours visible -->
@@ -54,10 +54,10 @@
   </div>
 
   <main>
-    <!-- 1. HERO : le wallpaper, la mer animée en WebGL -->
+    <!-- 1. HERO : le lagon de Galion, l'eau animée en WebGL -->
     <section class="hero" aria-labelledby="hero-title" data-hero>
       <div class="hero__media" data-hero-media aria-hidden="true">
-        <img class="hero__img" src="assets/img/wallpaper-hd.jpg" srcset="assets/img/wallpaper.jpg 960w, assets/img/wallpaper-hd.jpg 1920w" sizes="100vw" alt="" width="1920" height="1896" fetchpriority="high" data-hero-img>
+        <img class="hero__img" src="assets/img/header-galion.jpg" alt="" width="1920" height="780" fetchpriority="high" data-hero-img>
         <canvas class="hero__gl" data-sea></canvas>
       </div>
       <div class="hero__shade" aria-hidden="true" data-hero-shade></div>
@@ -76,7 +76,7 @@
           <span class="line"><span>FKN</span></span>
           <span class="line"><span>VAMOS!</span></span>
         </h1>
-        <p class="hero__lede fade-up" style="--d:3">Né sur Instagram, porté face aux vagues. Le nouveau drop vient d'arriver sur le sable.</p>
+        <p class="hero__lede fade-up" style="--d:3">Né sur Instagram, taillé pour l'eau turquoise. Le nouveau drop vient d'arriver sur le sable.</p>
         <div class="hero__actions fade-up" style="--d:4">
           <a class="btn btn--primary" href="#drop">Voir le drop <span aria-hidden="true">→</span></a>
           <a class="btn btn--glass" href="#lookbook">Lookbook</a>
@@ -124,7 +124,7 @@
         <h2 id="look-title" class="h2" data-mask>Porté au bord de l'eau.</h2>
       </div>
       <div class="look__grid">
-        <figure class="shot shot--wide" data-shot><img src="assets/img/header-galion.jpg" alt="Surfeur sur sa planche dans un lagon turquoise" loading="lazy" decoding="async" width="1920" height="780"><figcaption>Session lagon</figcaption></figure>
+        <figure class="shot shot--wide" data-shot><img src="assets/img/wallpaper-hd.jpg" alt="Homme de dos en t-shirt FKN VAMOS! face aux vagues" loading="lazy" decoding="async" width="1920" height="1896" style="object-position: 60% 30%"><figcaption>Tee FKN VAMOS!</figcaption></figure>
         <figure class="shot shot--tall" data-shot><img src="assets/img/cap-fkn-vamos.jpg" alt="Casquette noire FKN VAMOS! portée face à la mer" loading="lazy" decoding="async" width="611" height="620"><figcaption>Casquette FKN VAMOS!</figcaption></figure>
         <figure class="shot" data-shot><img src="assets/img/tee-fkn-vamos.jpg" alt="T-shirt noir FKN VAMOS! posé sur une planche de surf" loading="lazy" decoding="async" width="622" height="623"><figcaption>Tee FKN VAMOS!</figcaption></figure>
         <figure class="shot" data-shot><img src="assets/img/cap-con-todo.jpg" alt="Casquette noire Con Todo! posée sur un muret au bord de la plage" loading="lazy" decoding="async" width="628" height="624"><figcaption>Casquette Con Todo!</figcaption></figure>

@@ -397,14 +397,15 @@
     uniform vec2 u_img;
     uniform vec2 u_focus;
     uniform vec2 u_look;     // regard (souris + ressort), -0.5..0.5
-    uniform vec2 u_cam;      // micro-mouvement de caméra à l'épaule
+    uniform vec2 u_cam;      // travelling lent de la caméra
+    uniform float u_zoom;    // zoom cinéma (intro + respiration lente)
     uniform float u_time;
-    uniform float u_intro;   // 0 → 1 : la mer monte et dévoile l'image
+    uniform float u_intro;   // 0 → 1 : fondu d'ouverture
     uniform float u_scroll;  // 0 → 1 sur la hauteur du hero
     uniform vec4 u_rip[8];
     varying vec2 v_uv;
 
-    const float H = 0.468;   // horizon dans la photo
+    const float H = 0.296;   // ligne du rivage dans la photo (Galion)
 
     float hash(vec2 q) { return fract(sin(dot(q, vec2(127.1, 311.7))) * 43758.5453); }
     float noise(vec2 q) {
@@ -422,13 +423,23 @@
       vec2 s = smoothstep(a - f, a, q) * (1.0 - smoothstep(b, b + f, q));
       return s.x * s.y;
     }
-    // Zones qui ne doivent pas bouger : surfeur, rochers, treillis
+    // Zone qui ne doit pas bouger : le surfeur et sa planche
     float stillMask(vec2 q, float f) {
-      return max(
-        max(box(q, vec2(0.575, 0.155), vec2(0.815, 0.915), f),
-            box(q, vec2(0.445, 0.86), vec2(1.0, 1.0), f * 1.6)),
-        max(box(q, vec2(0.865, 0.56), vec2(1.0, 1.0), f * 1.6),
-            box(q, vec2(0.86, 0.17), vec2(1.0, 0.6), f)));
+      return box(q, vec2(0.538, 0.525), vec2(0.62, 0.675), f);
+    }
+    float cellEdge(vec2 p, float t) {
+      vec2 i = floor(p), f = fract(p);
+      float d1 = 8.0, d2 = 8.0;
+      for (int y = -1; y <= 1; y++) {
+        for (int x = -1; x <= 1; x++) {
+          vec2 g = vec2(float(x), float(y));
+          vec2 o = vec2(hash(i + g), hash(i + g + 19.7));
+          o = 0.5 + 0.45 * sin(t + 6.2831 * o);
+          float d = length(g + o - f);
+          if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
+        }
+      }
+      return d2 - d1;
     }
     float swell(vec2 w, float t) {
       float a = fbm(vec2(w.x * 0.9, w.y * 1.4 - t * 0.55));
@@ -452,15 +463,14 @@
     void main() {
       float ca = u_res.x / u_res.y;
       float ia = u_img.x / u_img.y;
-      vec2 s = (ca > ia ? vec2(1.0, ia / ca) : vec2(ca / ia, 1.0)) * 0.94;
+      vec2 s = (ca > ia ? vec2(1.0, ia / ca) : vec2(ca / ia, 1.0)) * 0.94 / u_zoom;
       vec2 c = clamp(u_focus, s * 0.5, 1.0 - s * 0.5);
       vec2 uv0 = c + (v_uv - 0.5) * s;
 
       float still = stillMask(uv0, 0.012);
-      float stillWide = stillMask(uv0, 0.05);
       float sea = smoothstep(H - 0.004, H + 0.025, uv0.y);
       float depth = clamp((uv0.y - H) / (1.0 - H), 0.0, 1.0);
-      float t = u_time;
+      float t = u_time * 0.75;   // rythme calme
 
       // Profondeur 2.5D : ciel lointain, premier plan proche, surfeur avec le premier plan
       float layer = mix(mix(0.12, 0.35, sea), 1.0, sea * depth);
@@ -495,50 +505,34 @@
         ring += wv;
       }
 
-      // Advection : l'eau et l'écume avancent vers la plage, les nuages glissent.
-      // Deux phases décalées se relaient pour un mouvement continu, sans saut.
-      float flowWater = sea * (1.0 - stillWide) * pow(depth, 1.4);
-      float flowSky = (1.0 - sea) * (1.0 - stillWide);
-      vec2 flow = vec2((noise(w * 0.4 + t * 0.05) - 0.5) * 0.25, 1.0) * flowWater
-                + vec2(-0.35, 0.0) * flowSky;
-      float jitter = noise(uv0 * vec2(9.0, 22.0)) * 0.7;
-      float ph0 = fract(t * 0.16 + jitter);
-      float ph1 = fract(t * 0.16 + jitter + 0.5);
-      float wb = abs(1.0 - 2.0 * ph0);
-      vec2 base = uv + d * water;
-      vec3 col = mix(tap(base - flow * ph0 * 0.02), tap(base - flow * ph1 * 0.02), wb);
+      // Mouvement continu : seule la houle, qui avance vers la plage, déforme l'eau.
+      // Pas de fondu entre deux phases : aucun battement, un glissement fluide.
+      vec3 col = tap(uv + d * water);
 
       // Scintillement du soleil sur la pente de la houle
       vec3 n = normalize(vec3(-grad.x * 1.4, 1.0, -grad.y * 0.9));
       vec3 sun = normalize(vec3(-0.35, 0.75, -0.55));
       float glint = pow(max(dot(n, sun), 0.0), 70.0) * (0.25 + depth) * 0.5;
-      glint *= smoothstep(0.55, 0.75, noise(w * 6.0 + t * 1.5));
+      glint *= smoothstep(0.4, 0.8, noise(w * 4.0 + t * 0.6));
       col += vec3(1.0, 0.97, 0.88) * (glint + max(ring, 0.0) * 0.1) * water;
 
       // L'écume respire
       float lum = dot(col, vec3(0.299, 0.587, 0.114));
-      col += (noise(w * 3.0 - vec2(0.0, t * 1.2)) - 0.5) * 0.07 * smoothstep(0.62, 0.85, lum) * water;
+      col += (noise(w * 2.5 - vec2(0.0, t * 0.6)) - 0.5) * 0.05 * smoothstep(0.62, 0.85, lum) * water;
+
+      // Caustiques sur le fond sableux, visibles là où l'eau est claire
+      vec2 cp = w * vec2(1.6, 0.9) + d * 40.0;
+      cp += vec2(noise(cp * 0.6 + t * 0.2), noise(cp * 0.6 - t * 0.2 + 5.0)) * 1.1;
+      float ca1 = 1.0 - smoothstep(0.0, 0.32, cellEdge(cp, t * 0.7));
+      float ca2 = 1.0 - smoothstep(0.0, 0.26, cellEdge(cp * 1.6 + 3.1, t * 0.95));
+      float caus = pow(ca1 * ca2, 2.0) * 1.6 + pow(ca1, 3.0) * 0.15;
+      float clear = smoothstep(0.3, 0.65, dot(col, vec3(0.2, 0.5, 0.3)));
+      col += vec3(0.75, 1.0, 0.95) * caus * 0.09 * water * clear * smoothstep(0.05, 0.4, depth);
 
       // Rayons de lumière discrets dans le ciel
       vec2 ro = v_uv - vec2(0.18, -0.25);
       float rays = fbm(vec2(atan(ro.y, ro.x) * 9.0, t * 0.12)) * (1.0 - smoothstep(0.2, 1.3, length(ro)));
-      col += vec3(1.0, 0.95, 0.85) * pow(rays, 3.0) * 0.1 * (1.0 - sea);
-
-      // Embruns flous devant l'objectif (profondeur de champ)
-      float spray = 0.0;
-      for (int i = 0; i < 14; i++) {
-        float fi = float(i);
-        float hs = hash(vec2(fi, 1.3));
-        float hv = hash(vec2(fi, 7.1));
-        float sp = 0.008 + hv * 0.02;
-        vec2 pos = vec2(fract(hs + t * sp + sin(t * 0.3 + fi) * 0.015),
-                        mix(1.05, 0.35, fract(hv + t * sp * 0.5)));
-        float rad = mix(0.006, 0.032, hash(vec2(fi, 3.7)));
-        float dd = length((v_uv - pos) * asp);
-        float tw = 0.5 + 0.5 * sin(t * (0.6 + hv) + fi);
-        spray += (1.0 - smoothstep(rad * 0.55, rad, dd)) * (0.05 + 0.08 * tw) * (0.4 + hash(vec2(fi, 9.0)));
-      }
-      col += vec3(0.95, 0.98, 1.0) * spray;
+      col += vec3(1.0, 0.95, 0.85) * pow(rays, 3.0) * 0.06 * (1.0 - sea);
 
       // Étalonnage filmique : courbe douce, ombres froides, hautes lumières chaudes
       vec3 aces = (col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14);
@@ -546,13 +540,10 @@
       lum = dot(col, vec3(0.299, 0.587, 0.114));
       col += vec3(-0.012, 0.004, 0.022) * (1.0 - lum) + vec3(0.022, 0.012, -0.012) * lum;
       col *= mix(1.0, 0.86, smoothstep(0.45, 1.05, length((v_uv - 0.5) * vec2(ca * 0.75, 1.0))));
-      col += (hash(gl_FragCoord.xy + fract(t) * 91.0) - 0.5) * 0.026;
+      col += (hash(gl_FragCoord.xy) - 0.5) * 0.018;   // grain fixe : pas de scintillement
 
-      // Intro : la mer monte et dévoile la photo, bord en vague
-      float edge = 1.0 - u_intro * 1.25 + sin(v_uv.x * 9.0 + t * 2.4) * 0.025 + sin(v_uv.x * 23.0 - t * 3.1) * 0.012;
-      float reveal = smoothstep(edge, edge + 0.06, v_uv.y);
-      col = mix(vec3(0.012, 0.067, 0.114), col, reveal);
-      col += vec3(0.75, 0.95, 1.0) * (1.0 - smoothstep(0.0, 0.025, abs(v_uv.y - edge - 0.03))) * 0.35 * (1.0 - u_intro);
+      // Intro : la photo émerge de la nuit pendant que la caméra recule
+      col = mix(vec3(0.012, 0.067, 0.114), col, smoothstep(0.0, 0.85, u_intro));
 
       gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
     }`;
@@ -600,9 +591,9 @@
     gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
 
     const U = {};
-    ["u_res", "u_img", "u_focus", "u_look", "u_cam", "u_time", "u_intro", "u_scroll", "u_rip"].forEach((n) => (U[n] = gl.getUniformLocation(prog, n)));
-    const FOCUS = [0.62, 0.42];
-    const HORIZON = 0.468;
+    ["u_res", "u_img", "u_focus", "u_look", "u_cam", "u_zoom", "u_time", "u_intro", "u_scroll", "u_rip"].forEach((n) => (U[n] = gl.getUniformLocation(prog, n)));
+    const FOCUS = [0.57, 0.5];
+    const HORIZON = 0.296;
     gl.uniform2f(U.u_focus, FOCUS[0], FOCUS[1]);
 
     const ripples = new Float32Array(8 * 4);
@@ -634,41 +625,38 @@
     function stepSpring(dt) {
       if (performance.now() - pointerSeen > 2500) {
         const t = now();
-        look.tx = Math.sin(t * 0.21) * 0.35;
-        look.ty = Math.sin(t * 0.17 + 1.3) * 0.2;
+        look.tx = Math.sin(t * 0.11) * 0.3;
+        look.ty = Math.sin(t * 0.09 + 1.3) * 0.16;
       }
-      const k = 38, c = 11;
+      // Ressort souple et bien amorti : le regard glisse, sans rebond
+      const k = 14, c = 7.5;
       look.vx += ((look.tx - look.x) * k - look.vx * c) * dt;
       look.vy += ((look.ty - look.y) * k - look.vy * c) * dt;
       look.x += look.vx * dt;
       look.y += look.vy * dt;
     }
 
-    let running = false, raf = 0, ambient = 1.5, last = performance.now();
+    let running = false, raf = 0, last = performance.now(), scrollS = 0;
     let introStart = -1, frames = 0, slowAcc = 0;
     function frame(ts) {
       const dt = Math.min(0.05, (ts - last) / 1000);
       last = ts;
       const t = now();
       if (introStart < 0) introStart = t;
-      const ip = clamp((t - introStart) / 1.9, 0, 1);
-      const intro = 1 - Math.pow(1 - ip, 3);
-
-      if (t > ambient) {
-        const h = horizonOnScreen();
-        addRipple(0.05 + Math.random() * 0.45, h + 0.1 + Math.random() * (0.88 - h), 0.25);
-        ambient = t + 2.4 + Math.random() * 2;
-      }
+      const ip = clamp((t - introStart) / 2.6, 0, 1);
+      const intro = 1 - Math.pow(1 - ip, 4);   // ease-out marqué : arrivée douce
       stepSpring(dt);
+      // Scroll lissé : la molette avance par crans, l'image, elle, glisse
+      scrollS += (clamp(scrollY / hero.offsetHeight, 0, 1) - scrollS) * Math.min(1, dt * 8);
 
       gl.uniform1f(U.u_time, t);
       gl.uniform1f(U.u_intro, intro);
-      gl.uniform1f(U.u_scroll, clamp(scrollY / hero.offsetHeight, 0, 1));
+      gl.uniform1f(U.u_scroll, scrollS);
       gl.uniform2f(U.u_look, look.x, look.y);
-      // Caméra à l'épaule : somme de sinus aux fréquences non multiples, jamais répétitive
-      gl.uniform2f(U.u_cam,
-        (Math.sin(t * 0.53) * 0.6 + Math.sin(t * 1.31 + 1.7) * 0.3 + Math.sin(t * 2.17 + 0.4) * 0.1) * 0.0018,
-        (Math.sin(t * 0.47 + 2.1) * 0.6 + Math.sin(t * 1.13 + 0.9) * 0.3 + Math.sin(t * 2.71) * 0.1) * 0.0014);
+      // Travelling lent façon drone : la caméra dérive et respire, sans à-coups
+      gl.uniform2f(U.u_cam, Math.sin(t * 0.045) * 0.012, Math.sin(t * 0.037 + 1.1) * 0.006);
+      const breathe = 0.5 - 0.5 * Math.cos(t * 0.06);          // cycle d'environ 100 s
+      gl.uniform1f(U.u_zoom, 1 + (1 - intro) * 0.14 + breathe * 0.035 + scrollS * 0.05);
       gl.uniform4fv(U.u_rip, ripples);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
 
@@ -963,118 +951,81 @@
     });
   }
 
-  /* ---------- Fond océan : après la photo, on plonge sous l'eau ----------
-     Caustiques (lumière de surface réfractée), rayons qui ondulent, neige marine
-     en parallaxe, bulles qui remontent. Plus on descend, plus c'est profond et sombre. */
+  /* ---------- Fond du site : soleil filtré par les palmes ----------
+     Ombres de palmes qui se balancent au vent, lumière chaude tachetée,
+     le soleil glisse doucement au fil de la page. */
   const OCEAN_FRAG = `
     precision highp float;
     uniform vec2 u_res;
     uniform float u_time;
     uniform float u_depth;   // 0 → 1 : progression dans la page après la photo
-    uniform float u_scroll;  // pixels défilés, pour la parallaxe des particules
+    uniform float u_scroll;  // pixels défilés
     varying vec2 v_uv;
 
     float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-    vec2 hash2(vec2 p) {
-      p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
-      return fract(sin(p) * 43758.5453);
-    }
     float noise(vec2 q) {
       vec2 i = floor(q), f = fract(q);
       vec2 u = f * f * (3.0 - 2.0 * f);
       return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), u.x),
                  mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), u.x), u.y);
     }
-    // Distance au bord de cellule (F2 - F1) : les filaments lumineux des caustiques
-    float cellEdge(vec2 p, float t) {
-      vec2 i = floor(p), f = fract(p);
-      float d1 = 8.0, d2 = 8.0;
-      for (int y = -1; y <= 1; y++) {
-        for (int x = -1; x <= 1; x++) {
-          vec2 g = vec2(float(x), float(y));
-          vec2 o = hash2(i + g);
-          o = 0.5 + 0.45 * sin(t + 6.2831 * o);
-          float d = length(g + o - f);
-          if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) { d2 = d; }
-        }
-      }
-      return d2 - d1;
-    }
-    float caustics(vec2 p, float t) {
-      // Déformation forte : filaments ondulés, jamais géométriques
-      p += vec2(noise(p * 0.6 + t * 0.2), noise(p * 0.6 - t * 0.2 + 5.0)) * 1.2;
-      p += vec2(noise(p * 1.7 - t * 0.3), noise(p * 1.7 + t * 0.25 + 9.0)) * 0.25;
-      float a = 1.0 - smoothstep(0.0, 0.34, cellEdge(p, t * 0.8));
-      float b = 1.0 - smoothstep(0.0, 0.28, cellEdge(p * 1.6 + 3.1, t * 1.1));
-      // Deux couches qui se croisent : la lumière se concentre en nœuds brillants
-      return pow(a * b, 2.0) * 1.8 + pow(a, 3.0) * 0.18;
-    }
-    // Neige marine : une particule au plus par cellule, en couches de profondeur
-    float snow(vec2 uv, float scale, float drift, float t, float par) {
-      vec2 p = uv * scale;
-      p.y += u_scroll * par * scale - t * drift;
-      p.x += sin(p.y * 0.35 + t * 0.2) * 0.3;
-      vec2 id = floor(p);
-      vec2 f = fract(p) - 0.5;
-      float on = step(0.88, hash(id + 3.7));
-      vec2 o = (hash2(id) - 0.5) * 0.6;
-      float r = 0.03 + hash(id + 1.3) * 0.05;
-      float tw = 0.6 + 0.4 * sin(t * (0.5 + hash(id)) + hash(id + 4.0) * 6.0);
-      return on * tw * (1.0 - smoothstep(0.0, r, length(f - o)));
-    }
-    float bubbles(vec2 uv, float t) {
-      vec2 p = uv * vec2(9.0, 4.0);
-      float col = floor(p.x);
-      float speed = 0.35 + hash(vec2(col, 2.0)) * 0.4;
-      p.y += t * speed + u_scroll * 0.0009 * 4.0;
-      vec2 id = floor(p);
-      vec2 f = fract(p) - 0.5;
-      float on = step(0.86, hash(id + 9.1));
-      f.x += sin(t * 2.0 + id.y * 3.0) * 0.12;
-      float r = 0.06 + hash(id) * 0.07;
-      float d = length(f * vec2(1.0, 2.25));
-      float rim = smoothstep(r * 0.45, r * 0.75, d) - smoothstep(r * 0.75, r, d);
-      float spec = 1.0 - smoothstep(0.0, r * 0.35, length(f * vec2(1.0, 2.25) - vec2(-r * 0.35, r * 0.35)));
-      return on * (rim * 0.5 + spec * 0.7);
+
+    // Une palme : tige courbée + folioles en peigne, bords flous (ombre portée)
+    float frond(vec2 p, vec2 origin, float ang, float len, float t, float seed) {
+      float a = ang + sin(t * 0.55 + seed) * 0.07 + sin(t * 1.6 + seed * 2.3) * 0.018;
+      vec2 q = p - origin;
+      float c = cos(a), s = sin(a);
+      q = vec2(c * q.x + s * q.y, -s * q.x + c * q.y);
+      float u = q.x / len;
+      if (u < 0.0 || u > 1.0) return 0.0;
+      float y = q.y + 0.22 * u * u * len;                        // la tige retombe
+      float halfW = len * 0.2 * sin(3.1416 * pow(u, 0.75));      // plus large au milieu
+      float inside = 1.0 - smoothstep(halfW * 0.55, halfW * 1.2, abs(y));
+      float lean = abs(y) / max(halfW, 1e-3);
+      // Folioles fines, rabattues vers l'arrière, qui s'affinent en pointe
+      float wave = sin(u * 105.0 - lean * 8.5 + sin(t * 2.1 + u * 9.0 + seed) * 0.4);
+      float leaflets = smoothstep(0.05, 0.75, wave) * (1.0 - smoothstep(0.55, 1.05, lean) * 0.6);
+      float spine = 1.0 - smoothstep(0.003, 0.014, abs(y));
+      return max(inside * leaflets, spine * (1.0 - u * 0.6));
     }
 
     void main() {
       vec2 uv = v_uv;
       float ca = u_res.x / u_res.y;
-      vec2 q = vec2(uv.x * ca, uv.y);
+      vec2 p = vec2(uv.x * ca, uv.y);
       float t = u_time;
-      float deep = u_depth;
+      float drift = u_scroll * 0.00006;
 
-      // Couleur de l'eau : lumineuse près de la surface (haut), profonde vers le bas et au fil du scroll
-      vec3 shallow = vec3(0.035, 0.24, 0.32);
-      vec3 mid = vec3(0.012, 0.11, 0.17);
-      vec3 abyss = vec3(0.004, 0.035, 0.06);
-      float y = clamp(uv.y + deep * 0.9, 0.0, 1.6);
-      vec3 col = mix(shallow, mid, smoothstep(0.0, 0.6, y));
-      col = mix(col, abyss, smoothstep(0.5, 1.5, y));
+      // Fond : nuit tropicale, du bleu lagon profond vers le bleu nuit
+      vec3 top = vec3(0.04, 0.15, 0.18);
+      vec3 bottom = vec3(0.012, 0.055, 0.085);
+      vec3 col = mix(top, bottom, smoothstep(0.0, 1.0, uv.y * 0.7 + u_depth * 0.6));
 
-      // Rayons de lumière depuis la surface, qui ondulent
-      float slant = uv.x * 1.0 + uv.y * 0.35;
-      float rays = noise(vec2(slant * 7.0 + t * 0.12, t * 0.08)) * noise(vec2(slant * 13.0 - t * 0.2, 3.0));
-      rays = pow(rays, 1.8) * (1.0 - smoothstep(0.0, 0.95, uv.y)) * (1.0 - deep * 0.75);
-      col += vec3(0.35, 0.75, 0.85) * rays * 0.45;
+      // Le soleil entre en haut à droite, glisse lentement au fil de la page
+      vec2 sunPos = vec2(ca * (0.82 - u_depth * 0.35), -0.15);
+      float sun = exp(-length((p - sunPos) * vec2(0.55, 0.9)) * 1.6);
 
-      // Caustiques projetées : fortes en haut, s'éteignent en profondeur
-      float c = caustics(q * 3.2 + vec2(0.0, u_scroll * 0.0004), t * 0.6);
-      float cfade = (1.0 - smoothstep(0.05, 0.85, uv.y)) * (1.0 - deep * 0.8);
-      col += vec3(0.5, 0.88, 0.92) * c * cfade * 0.16;
+      // Ombres des palmes, floues comme une vraie ombre portée de loin
+      vec2 pp = p + vec2(0.0, drift);
+      float sh = 0.0;
+      sh = max(sh, frond(pp, vec2(ca + 0.12, -0.18), 2.55, 1.05, t, 0.0));
+      sh = max(sh, frond(pp, vec2(ca + 0.12, -0.18), 2.05, 0.95, t, 1.7));
+      sh = max(sh, frond(pp, vec2(ca + 0.12, -0.18), 3.05, 0.85, t, 3.1));
+      sh = max(sh, frond(pp, vec2(ca * 0.55, -0.25), 1.45, 0.75, t, 4.4));
+      sh = max(sh, frond(pp, vec2(ca * 0.55, -0.25), 1.95, 0.7, t, 5.9));
+      sh = max(sh, frond(pp, vec2(-0.15, 1.15), -0.55, 0.9, t, 7.3));
 
-      // Neige marine en trois couches (près = plus gros, plus rapide)
-      float s = snow(q, 30.0, 0.12, t, 0.0004) * 0.18
-              + snow(q + 7.0, 16.0, 0.18, t, 0.0007) * 0.22
-              + snow(q + 13.0, 7.0, 0.26, t, 0.0012) * 0.12;
-      col += vec3(0.55, 0.8, 0.85) * s * (0.6 + 0.4 * (1.0 - deep));
+      // Lumière tachetée : soleil, moins les ombres, avec un léger frémissement
+      float flicker = 0.85 + 0.15 * noise(p * 3.0 + t * 0.4);
+      float light = sun * (1.0 - sh * 0.82) * flicker;
+      col += vec3(1.0, 0.82, 0.58) * light * 0.34;
+      col += vec3(0.25, 0.75, 0.8) * sun * 0.05;
 
-      // Bulles qui remontent
-      col += vec3(0.75, 0.95, 1.0) * bubbles(q, t) * 0.35;
+      // Brume chaude qui respire
+      col += vec3(0.9, 0.7, 0.5) * (noise(p * 0.8 + vec2(t * 0.03, 0.0)) - 0.5) * 0.025;
 
       // Vignette, grain fin
-      col *= mix(1.0, 0.7, smoothstep(0.35, 1.0, length((uv - 0.5) * vec2(ca * 0.6, 1.0))));
+      col *= mix(1.0, 0.75, smoothstep(0.35, 1.05, length((uv - 0.5) * vec2(ca * 0.6, 1.0))));
       col += (hash(gl_FragCoord.xy + fract(t) * 37.0) - 0.5) * 0.012;
 
       gl_FragColor = vec4(col, 1.0);
