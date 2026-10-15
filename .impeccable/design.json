@@ -1,0 +1,479 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-15T14:44:09.454Z",
+  "title": "Design System: FKN VAMOS",
+  "extensions": {
+    "colorMeta": {
+      "night": {
+        "role": "neutral",
+        "displayName": "Night Lagoon",
+        "canonical": "#03111d",
+        "tonalRamp": [
+          "oklch(15% 0.035 240)",
+          "oklch(25% 0.035 240)",
+          "oklch(35% 0.035 240)",
+          "oklch(45% 0.035 240)",
+          "oklch(55% 0.035 240)",
+          "oklch(65% 0.035 240)",
+          "oklch(80% 0.035 240)",
+          "oklch(95% 0.035 240)"
+        ]
+      },
+      "deep": {
+        "role": "neutral",
+        "displayName": "Deep Water",
+        "canonical": "#061c2c",
+        "tonalRamp": [
+          "oklch(15% 0.04 240)",
+          "oklch(25% 0.04 240)",
+          "oklch(35% 0.04 240)",
+          "oklch(45% 0.04 240)",
+          "oklch(55% 0.04 240)",
+          "oklch(65% 0.04 240)",
+          "oklch(80% 0.04 240)",
+          "oklch(95% 0.04 240)"
+        ]
+      },
+      "deep-2": {
+        "role": "neutral",
+        "displayName": "Deeper Shelf",
+        "canonical": "#0a2638",
+        "tonalRamp": [
+          "oklch(15% 0.045 238)",
+          "oklch(25% 0.045 238)",
+          "oklch(35% 0.045 238)",
+          "oklch(45% 0.045 238)",
+          "oklch(55% 0.045 238)",
+          "oklch(65% 0.045 238)",
+          "oklch(80% 0.045 238)",
+          "oklch(95% 0.045 238)"
+        ]
+      },
+      "abyss": {
+        "role": "neutral",
+        "displayName": "Abyss",
+        "canonical": "#04223a",
+        "tonalRamp": [
+          "oklch(15% 0.06 245)",
+          "oklch(25% 0.06 245)",
+          "oklch(35% 0.06 245)",
+          "oklch(45% 0.06 245)",
+          "oklch(55% 0.06 245)",
+          "oklch(65% 0.06 245)",
+          "oklch(80% 0.06 245)",
+          "oklch(95% 0.06 245)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Lagoon Ink",
+        "canonical": "#e7f3f4",
+        "tonalRamp": [
+          "oklch(15% 0.012 200)",
+          "oklch(25% 0.012 200)",
+          "oklch(35% 0.012 200)",
+          "oklch(45% 0.012 200)",
+          "oklch(55% 0.012 200)",
+          "oklch(65% 0.012 200)",
+          "oklch(80% 0.012 200)",
+          "oklch(95% 0.012 200)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Salt Haze",
+        "canonical": "#b3ccd3",
+        "tonalRamp": [
+          "oklch(15% 0.025 215)",
+          "oklch(25% 0.025 215)",
+          "oklch(35% 0.025 215)",
+          "oklch(45% 0.025 215)",
+          "oklch(55% 0.025 215)",
+          "oklch(65% 0.025 215)",
+          "oklch(80% 0.025 215)",
+          "oklch(95% 0.025 215)"
+        ]
+      },
+      "lagoon": {
+        "role": "primary",
+        "displayName": "Lagoon Signal",
+        "canonical": "#2fd6dc",
+        "tonalRamp": [
+          "oklch(15% 0.13 198)",
+          "oklch(25% 0.13 198)",
+          "oklch(35% 0.13 198)",
+          "oklch(45% 0.13 198)",
+          "oklch(55% 0.13 198)",
+          "oklch(65% 0.13 198)",
+          "oklch(80% 0.13 198)",
+          "oklch(95% 0.13 198)"
+        ]
+      },
+      "coral": {
+        "role": "primary",
+        "displayName": "Reef Coral",
+        "canonical": "#d63a1c",
+        "tonalRamp": [
+          "oklch(15% 0.2 33)",
+          "oklch(25% 0.2 33)",
+          "oklch(35% 0.2 33)",
+          "oklch(45% 0.2 33)",
+          "oklch(55% 0.2 33)",
+          "oklch(65% 0.2 33)",
+          "oklch(80% 0.2 33)",
+          "oklch(95% 0.2 33)"
+        ]
+      },
+      "coral-deep": {
+        "role": "primary",
+        "displayName": "Coral Deep",
+        "canonical": "#b32f15",
+        "tonalRamp": [
+          "oklch(15% 0.18 33)",
+          "oklch(25% 0.18 33)",
+          "oklch(35% 0.18 33)",
+          "oklch(45% 0.18 33)",
+          "oklch(55% 0.18 33)",
+          "oklch(65% 0.18 33)",
+          "oklch(80% 0.18 33)",
+          "oklch(95% 0.18 33)"
+        ]
+      },
+      "sun": {
+        "role": "secondary",
+        "displayName": "Sun Yellow",
+        "canonical": "#ffd84a",
+        "tonalRamp": [
+          "oklch(15% 0.16 95)",
+          "oklch(25% 0.16 95)",
+          "oklch(35% 0.16 95)",
+          "oklch(45% 0.16 95)",
+          "oklch(55% 0.16 95)",
+          "oklch(65% 0.16 95)",
+          "oklch(80% 0.16 95)",
+          "oklch(95% 0.16 95)"
+        ]
+      },
+      "foam": {
+        "role": "neutral",
+        "displayName": "Foam",
+        "canonical": "#f5fbfb",
+        "tonalRamp": [
+          "oklch(15% 0.006 200)",
+          "oklch(25% 0.006 200)",
+          "oklch(35% 0.006 200)",
+          "oklch(45% 0.006 200)",
+          "oklch(55% 0.006 200)",
+          "oklch(65% 0.006 200)",
+          "oklch(80% 0.006 200)",
+          "oklch(95% 0.006 200)"
+        ]
+      },
+      "stock-green": {
+        "role": "secondary",
+        "displayName": "Stock Green",
+        "canonical": "#3ddc84",
+        "tonalRamp": [
+          "oklch(15% 0.18 152)",
+          "oklch(25% 0.18 152)",
+          "oklch(35% 0.18 152)",
+          "oklch(45% 0.18 152)",
+          "oklch(55% 0.18 152)",
+          "oklch(65% 0.18 152)",
+          "oklch(80% 0.18 152)",
+          "oklch(95% 0.18 152)"
+        ]
+      },
+      "glass": {
+        "role": "neutral",
+        "displayName": "Glass",
+        "canonical": "rgb(255 255 255 / .05)"
+      },
+      "glass-2": {
+        "role": "neutral",
+        "displayName": "Glass 2",
+        "canonical": "rgb(255 255 255 / .09)"
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Rim",
+        "canonical": "rgb(255 255 255 / .1)"
+      },
+      "line-2": {
+        "role": "neutral",
+        "displayName": "Rim 2",
+        "canonical": "rgb(255 255 255 / .18)"
+      },
+      "disabled": {
+        "role": "neutral",
+        "displayName": "Disabled Shelf",
+        "canonical": "#22394a",
+        "tonalRamp": [
+          "oklch(15% 0.035 235)",
+          "oklch(25% 0.035 235)",
+          "oklch(35% 0.035 235)",
+          "oklch(45% 0.035 235)",
+          "oklch(55% 0.035 235)",
+          "oklch(65% 0.035 235)",
+          "oklch(80% 0.035 235)",
+          "oklch(95% 0.035 235)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Hero FKN / VAMOS! and the footer wordmark only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section titles and category index rows; words rise behind masks."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Product names, FAQ questions, mega-menu categories."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text, ledes (36ch), FAQ answers (60ch)."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Buttons, nav, chips, size options, small lagoon headings."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Prices, counts, quantities, totals, kbd keys, clock; tabular figures."
+      },
+      "data-caps": {
+        "displayName": "Data caps",
+        "purpose": "Stock badges and hero HUD readouts only; uppercase."
+      }
+    },
+    "shadows": [
+      {
+        "name": "rim",
+        "value": "inset 0 0 0 1px rgb(255 255 255 / .12)",
+        "purpose": "Edge of every glass island, tile, chip group and input (10-20% white)."
+      },
+      {
+        "name": "card-lift",
+        "value": "0 1px 0 rgb(255 255 255 / .06) inset, 0 20px 40px -24px rgb(0 0 0 / .7)",
+        "purpose": "Product card media."
+      },
+      {
+        "name": "floating-panel",
+        "value": "0 40px 80px -30px rgb(0 0 0 / .8)",
+        "purpose": "Sheet, finder and mega-menu, combined with a rim."
+      },
+      {
+        "name": "island",
+        "value": "inset 0 0 0 1px rgb(255 255 255 / .12), 0 18px 40px -20px rgb(0 0 0 / .7)",
+        "purpose": "Nav bar once the hero photo is passed."
+      },
+      {
+        "name": "glass-blur",
+        "value": "backdrop-filter: blur(20px) saturate(1.5)",
+        "purpose": "Floating glass over photo or page (10-24px blur range)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(.23, 1, .32, 1)",
+        "purpose": "Default for reveals, presses, panel unclips."
+      },
+      {
+        "name": "ease-in-out",
+        "value": "cubic-bezier(.77, 0, .175, 1)",
+        "purpose": "Mobile menu circle reveal, lookbook clip reveal."
+      },
+      {
+        "name": "ease-drawer",
+        "value": "cubic-bezier(.32, .72, 0, 1)",
+        "purpose": "Cart drawer and mobile sheet drawer entry."
+      },
+      {
+        "name": "press",
+        "value": "transform: scale(.97) over 160ms",
+        "purpose": "Every pressable control."
+      },
+      {
+        "name": "cart-flight",
+        "value": "700ms cubic-bezier(.5, 0, .2, 1)",
+        "purpose": "Product art arcs into the cart pill, then the pill bumps."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "search-icon",
+        "value": "1120px"
+      },
+      {
+        "name": "mega-compact",
+        "value": "1100px"
+      },
+      {
+        "name": "hero-feat-off",
+        "value": "860px"
+      },
+      {
+        "name": "split-stack",
+        "value": "820px"
+      },
+      {
+        "name": "mobile-nav",
+        "value": "760px"
+      },
+      {
+        "name": "sheet-drawer",
+        "value": "720px"
+      },
+      {
+        "name": "phone",
+        "value": "680px"
+      },
+      {
+        "name": "hits-compact",
+        "value": "560px"
+      },
+      {
+        "name": "cart-full",
+        "value": "520px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Coral buy/primary action; the only coral control besides the filled cart pill.",
+      "html": "<a class=\"ds-btn ds-btn-primary\" href=\"#\">Voir le drop <span aria-hidden=\"true\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h13M13 6l6 6-6 6\"/></svg></span></a>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:.55rem;min-height:52px;padding:0 1.5rem;border:0;border-radius:999px;font:700 .95rem/1 Manrope,system-ui,sans-serif;letter-spacing:.01em;cursor:pointer;transition:transform 160ms cubic-bezier(.23,1,.32,1),background-color 200ms ease,color 200ms ease;text-decoration:none;} .ds-btn span{display:inline-flex;transition:transform 200ms cubic-bezier(.23,1,.32,1);} .ds-btn-primary{background:#d63a1c;color:#fff;} .ds-btn-primary:hover{background:#b32f15;} .ds-btn:hover span{transform:translateX(3px);} .ds-btn:active{transform:scale(.97);} .ds-btn:focus-visible{outline:2px solid #2fd6dc;outline-offset:3px;}"
+    },
+    {
+      "name": "Glass Button",
+      "kind": "button",
+      "refersTo": "button-glass",
+      "description": "Secondary action over photography.",
+      "html": "<a class=\"ds-btn-glass\" href=\"#\">Lookbook</a>",
+      "css": ".ds-btn-glass{display:inline-flex;align-items:center;justify-content:center;gap:.55rem;min-height:52px;padding:0 1.5rem;border:0;border-radius:999px;font:700 .95rem/1 Manrope,system-ui,sans-serif;letter-spacing:.01em;cursor:pointer;transition:transform 160ms cubic-bezier(.23,1,.32,1),background-color 200ms ease,color 200ms ease;text-decoration:none;background:rgb(255 255 255 / .1);color:#fff;box-shadow:inset 0 0 0 1px rgb(255 255 255 / .3);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);} .ds-btn-glass:hover{background:rgb(255 255 255 / .2);} .ds-btn-glass:active{transform:scale(.97);} .ds-btn-glass:focus-visible{outline:2px solid #2fd6dc;outline-offset:3px;}"
+    },
+    {
+      "name": "Dark Button",
+      "kind": "button",
+      "refersTo": "button-dark",
+      "description": "Secondary action on night surfaces; inverts to ink on hover.",
+      "html": "<button class=\"ds-btn-dark\" type=\"button\">Acheter maintenant</button>",
+      "css": ".ds-btn-dark{display:inline-flex;align-items:center;justify-content:center;gap:.55rem;min-height:52px;padding:0 1.5rem;border:0;border-radius:999px;font:700 .95rem/1 Manrope,system-ui,sans-serif;letter-spacing:.01em;cursor:pointer;transition:transform 160ms cubic-bezier(.23,1,.32,1),background-color 200ms ease,color 200ms ease;background:rgb(255 255 255 / .09);color:#e7f3f4;box-shadow:inset 0 0 0 1px rgb(255 255 255 / .18);} .ds-btn-dark:hover{background:#e7f3f4;color:#03111d;} .ds-btn-dark:active{transform:scale(.97);} .ds-btn-dark:focus-visible{outline:2px solid #2fd6dc;outline-offset:3px;}"
+    },
+    {
+      "name": "Filter Chips",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Chips grouped in a rimmed glass tray; selected inverts to ink.",
+      "html": "<div class=\"ds-filters\"><button class=\"ds-chip is-on\" aria-pressed=\"true\">Tout</button><button class=\"ds-chip\" aria-pressed=\"false\">T-shirts</button><button class=\"ds-chip\" aria-pressed=\"false\">Casquettes</button></div>",
+      "css": ".ds-filters{display:inline-flex;gap:.4rem;padding:4px;border-radius:999px;background:rgb(255 255 255 / .05);box-shadow:inset 0 0 0 1px rgb(255 255 255 / .1);} .ds-chip{min-height:38px;padding:0 1rem;border:0;border-radius:999px;background:transparent;color:#b3ccd3;font:600 .88rem/1 Manrope,system-ui,sans-serif;cursor:pointer;transition:background-color 200ms ease,color 200ms ease,transform 160ms cubic-bezier(.23,1,.32,1);} .ds-chip:hover{color:#e7f3f4;} .ds-chip.is-on{background:#e7f3f4;color:#03111d;} .ds-chip:active{transform:scale(.96);} .ds-chip:focus-visible{outline:2px solid #2fd6dc;outline-offset:3px;}"
+    },
+    {
+      "name": "Size Picker",
+      "kind": "input",
+      "refersTo": "size-option",
+      "description": "Radio tiles for size; checked inverts to ink.",
+      "html": "<div class=\"ds-sizes\"><label class=\"ds-size\"><input type=\"radio\" name=\"ds-s\"><span>S</span></label><label class=\"ds-size\"><input type=\"radio\" name=\"ds-s\" checked><span>M</span></label><label class=\"ds-size\"><input type=\"radio\" name=\"ds-s\" disabled><span>L</span></label></div>",
+      "css": ".ds-sizes{display:flex;gap:.5rem;} .ds-size input{position:absolute;opacity:0;pointer-events:none;} .ds-size span{display:grid;place-items:center;min-width:52px;height:48px;padding:0 .9rem;border-radius:12px;background:rgb(255 255 255 / .05);box-shadow:inset 0 0 0 1px rgb(255 255 255 / .18);color:#e7f3f4;font:700 .95rem/1 Manrope,system-ui,sans-serif;cursor:pointer;transition:background-color 150ms ease,color 150ms ease;} .ds-size span:hover{background:rgb(255 255 255 / .09);} .ds-size input:checked+span{background:#e7f3f4;color:#03111d;box-shadow:none;} .ds-size input:focus-visible+span{outline:2px solid #2fd6dc;outline-offset:2px;} .ds-size input:disabled+span{opacity:.4;cursor:not-allowed;}"
+    },
+    {
+      "name": "Stock Badge",
+      "kind": "chip",
+      "refersTo": "stock-badge",
+      "description": "Night-glass pill with a state dot: green available, sun last pieces, coral sold out.",
+      "html": "<span class=\"ds-badge\">Dispo</span> <span class=\"ds-badge ds-badge--derniers\">Derniers</span> <span class=\"ds-badge ds-badge--epuise\">Épuisé</span>",
+      "css": ".ds-badge{display:inline-flex;align-items:center;gap:.45rem;padding:.4rem .65rem;border-radius:999px;font:500 .68rem/1 \"JetBrains Mono\",ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;background:rgb(3 17 29 / .6);color:#fff;box-shadow:inset 0 0 0 1px rgb(255 255 255 / .16);backdrop-filter:blur(10px);} .ds-badge::before{content:\"\";width:6px;height:6px;border-radius:50%;background:#3ddc84;} .ds-badge--derniers::before{background:#ffd84a;} .ds-badge--epuise::before{background:#d63a1c;}"
+    },
+    {
+      "name": "Product Card",
+      "kind": "card",
+      "refersTo": "product-card-media",
+      "description": "4:5 media on deep-water gradient with tint glow, badge, name and lagoon mono price.",
+      "html": "<button class=\"ds-card\" style=\"--t1:#12b5bf\"><span class=\"ds-card__media\"><span class=\"ds-card__badge\">Dispo</span></span><span class=\"ds-card__meta\"><span class=\"ds-card__name\">Tee FKN VAMOS!</span><span class=\"ds-card__price\">35 €</span></span></button>",
+      "css": ".ds-card{display:block;width:260px;padding:0;border:0;background:none;text-align:left;cursor:pointer;color:#e7f3f4;} .ds-card__media{position:relative;display:block;aspect-ratio:4/5;border-radius:20px;overflow:hidden;background:radial-gradient(120% 80% at 50% 115%,color-mix(in oklab,var(--t1) 45%,transparent) 0%,transparent 60%),linear-gradient(160deg,#0c2a3d 0%,#061826 100%);box-shadow:0 1px 0 rgb(255 255 255 / .06) inset,0 20px 40px -24px rgb(0 0 0 / .7),inset 0 0 0 1px rgb(255 255 255 / .1);transition:transform 160ms cubic-bezier(.23,1,.32,1);} .ds-card__media::after{content:\"\";position:absolute;inset:0;background:radial-gradient(260px circle at 50% 40%,rgb(255 255 255 / .16),transparent 60%);opacity:0;transition:opacity 250ms ease;} .ds-card:hover .ds-card__media::after{opacity:1;} .ds-card:active .ds-card__media{transform:scale(.98);} .ds-card:focus-visible{outline:2px solid #2fd6dc;outline-offset:3px;border-radius:8px;} .ds-card__badge{position:absolute;top:12px;left:12px;z-index:1;padding:.4rem .65rem;border-radius:999px;font:500 .68rem/1 \"JetBrains Mono\",monospace;letter-spacing:.08em;text-transform:uppercase;background:rgb(3 17 29 / .6);color:#fff;box-shadow:inset 0 0 0 1px rgb(255 255 255 / .16);} .ds-card__meta{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;padding:.9rem .2rem 0;} .ds-card__name{font:700 1.08rem/1.2 \"Bricolage Grotesque\",sans-serif;} .ds-card__price{font:500 .92rem/1 \"JetBrains Mono\",monospace;color:#2fd6dc;}"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "finder",
+      "description": "Command-palette search: borderless input, lagoon caret, mono escape key.",
+      "html": "<div class=\"ds-finder\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" aria-hidden=\"true\"><circle cx=\"10.5\" cy=\"10.5\" r=\"6.5\"/><path d=\"m15.5 15.5 5 5\"/></svg><input class=\"ds-finder__input\" type=\"search\" placeholder=\"Tee, hoodie, casquette…\" aria-label=\"Rechercher\"><kbd class=\"ds-finder__esc\">Échap</kbd></div>",
+      "css": ".ds-finder{display:flex;align-items:center;gap:.8rem;width:520px;padding:0 14px 0 20px;border-radius:24px;background:#061c2c;color:#b3ccd3;box-shadow:inset 0 0 0 1px rgb(255 255 255 / .18),0 40px 80px -30px rgb(0 0 0 / .85);} .ds-finder__input{flex:1;min-width:0;height:64px;border:0;outline:0;background:none;font:600 1.2rem/1 Manrope,system-ui,sans-serif;color:#e7f3f4;caret-color:#2fd6dc;} .ds-finder__input::placeholder{color:rgb(179 204 211 / .7);} .ds-finder__esc{padding:.35rem .55rem;border-radius:8px;background:rgb(255 255 255 / .09);color:#b3ccd3;font:600 .72rem/1 \"JetBrains Mono\",monospace;}"
+    },
+    {
+      "name": "Nav Island",
+      "kind": "nav",
+      "refersTo": "cart-pill",
+      "description": "Floating glass pill bar: mark, nav pill with white active pill, cart pill (shown filled/coral).",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav__mark\" href=\"#\">FKN<span>·</span>VAMOS</a><div class=\"ds-nav__links\"><a class=\"is-active\" href=\"#\">Shop</a><a href=\"#\">Lookbook</a><a href=\"#\">Infos</a></div><button class=\"ds-cart\" type=\"button\">Panier <span>1</span></button></nav>",
+      "css": ".ds-nav{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:1rem;width:760px;padding:8px 8px 8px 18px;border-radius:999px;color:#fff;background:rgb(4 22 36 / .62);box-shadow:inset 0 0 0 1px rgb(255 255 255 / .12),0 18px 40px -20px rgb(0 0 0 / .7);backdrop-filter:blur(20px) saturate(1.5);} .ds-nav__mark{font:800 1.12rem/1 \"Bricolage Grotesque\",sans-serif;letter-spacing:-.02em;text-decoration:none;color:#fff;} .ds-nav__mark span{color:#2fd6dc;margin-inline:.12em;} .ds-nav__links{display:flex;gap:2px;padding:4px;border-radius:999px;background:rgb(255 255 255 / .07);box-shadow:inset 0 0 0 1px rgb(255 255 255 / .1);} .ds-nav__links a{padding:.55rem 1rem;border-radius:999px;font:600 .9rem/1 Manrope,system-ui,sans-serif;text-decoration:none;color:rgb(255 255 255 / .78);transition:color 200ms ease;} .ds-nav__links a:hover{color:#fff;} .ds-nav__links a.is-active{background:#fff;color:#03111d;} .ds-nav a:focus-visible,.ds-cart:focus-visible{outline:2px solid #2fd6dc;outline-offset:3px;} .ds-cart{justify-self:end;display:inline-flex;align-items:center;gap:.5rem;min-height:40px;padding:0 .5rem 0 .9rem;border:0;border-radius:999px;background:#d63a1c;color:#fff;font:700 .9rem/1 Manrope,system-ui,sans-serif;cursor:pointer;transition:background-color 250ms ease,transform 160ms cubic-bezier(.23,1,.32,1);} .ds-cart:hover{background:#b32f15;} .ds-cart:active{transform:scale(.96);} .ds-cart span{display:grid;place-items:center;min-width:24px;height:24px;padding:0 .4rem;border-radius:999px;background:#fff;color:#b32f15;font:700 .75rem/1 \"JetBrains Mono\",monospace;font-variant-numeric:tabular-nums;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Lagoon HUD",
+    "overview": "The shop is a dive-computer readout floating over real Caribbean water. The Galion lagoon photo (alive in WebGL in the hero) is the ground; every piece of interface sits on it as a dark glass island with a 1px light rim, reading like instrumentation rather than a storefront. Night-lagoon blues carry the page after the photo, turquoise signals, coral asks for money.\n\nDensity is low on the landing and tight inside the tools: giant 800-weight display type and full-bleed photography up top, then compact, data-dense surfaces (mega-menu, search, cart, sheet) where prices, counts and stock read in monospace like gauges. Motion is physical and eased out: words rise behind masks, panels unclip, the bought piece flies into the cart pill.\n\nThe world rejects the black-ground hype grid and the default Shopify storefront (vague menus, no stock state). It is dark by construction (`color-scheme: dark`), never a light theme.",
+    "keyCharacteristics": [
+      "Real lagoon photography and WebGL water as the ground; UI floats as glass islands.",
+      "Two-voice color: lagoon turquoise signals, coral buys. Nothing else is saturated.",
+      "Bricolage Grotesque 800 at extreme sizes with tight negative tracking.",
+      "Monospace strictly for data: prices, counts, stock, clock, keys.",
+      "Pills and soft corners everywhere; borders are inset 1px rims, not strokes."
+    ],
+    "rules": [
+      {
+        "name": "The Two Voices Rule",
+        "body": "Lagoon signals, coral buys. A coral element must lead to a purchase or the cart; a lagoon element must never be the pay button.",
+        "section": "colors"
+      },
+      {
+        "name": "The Night Ground Rule",
+        "body": "Every surface is a shade of night water or white glass over it. No light-themed sections, no grey neutrals outside the blue family.",
+        "section": "colors"
+      },
+      {
+        "name": "The Gauge Rule",
+        "body": "If it is a number or a machine state (price, count, stock, time, scroll %, keyboard key), it is JetBrains Mono with tabular figures. Words that are not data never use mono.",
+        "section": "typography"
+      },
+      {
+        "name": "The Shout Rule",
+        "body": "Display and headline sizes are Bricolage 800 with negative tracking (-0.035em to -0.05em). Display never drops below 700 weight.",
+        "section": "typography"
+      },
+      {
+        "name": "The Rim Not Stroke Rule",
+        "body": "Edges are inset box-shadow rims at 10–20% white, never solid `border` strokes around components. Hairline `border-top/bottom: 1px solid line` is reserved for dividing list rows and sections.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Glass Over Water Rule",
+        "body": "Anything floating over the photo or the page (nav, HUD readouts, badges, captions, close buttons) is translucent night glass with backdrop blur; opaque surfaces are reserved for dialogs.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do keep the lagoon photo or WebGL water visible behind the first viewport; the UI floats over it.",
+      "Do put every price, count, stock state and key in JetBrains Mono with tabular figures.",
+      "Do reserve coral (#d63a1c) for purchase and cart actions, with white text.",
+      "Do draw edges as inset 1px white rims at 10–20% and floating surfaces as blurred night glass.",
+      "Do use full pills for controls and rounded.md / rounded.lg for media and panels.",
+      "Do gate hover effects behind `(hover: hover) and (pointer: fine)` and give touch a 0.95–0.97 press scale.",
+      "Do keep reduced-motion fallbacks: fades only, no translation, no custom cursor."
+    ],
+    "donts": [
+      "Don't introduce light-themed sections or neutral greys outside the night-water family.",
+      "Don't use lagoon turquoise for buy buttons or coral for non-purchase signals.",
+      "Don't set prose, labels or headings in mono; mono is for data only.",
+      "Don't add hard offset shadows or solid outline strokes around components; depth is glass, rim and soft ambient drop.",
+      "Don't fall back to a black hype grid or a default Shopify-style storefront layout."
+    ]
+  }
+}

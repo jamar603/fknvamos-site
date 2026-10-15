@@ -38,6 +38,15 @@
         ],
         "createdAt": "2026-10-14T18:56:29.658Z",
         "reason": "Claude triage: elliptical repeating-radial contour lines are the island topographic-map motif for the futuristic island theme the user asked for, not decorative stripes; 3-4% opacity, verified in screenshots"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          "index.html"
+        ],
+        "createdAt": "2026-10-15T14:31:55.988Z",
+        "reason": "Claude triage: body overflow-x: clip is pre-existing and only blocks horizontal page scroll; menus, mega-menu, sheet, cart and finder are fixed or top-layer dialogs and escape it, verified in 1440 and 390 captures"
       }
     ]
   }

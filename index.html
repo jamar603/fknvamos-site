@@ -8,13 +8,14 @@
   <meta name="theme-color" content="#03111d">
   <meta property="og:title" content="FKN VAMOS">
   <meta property="og:description" content="Le nouveau drop est en ligne.">
-  <meta property="og:image" content="assets/img/header-galion.jpg">
+  <meta property="og:image" content="assets/img/surf-poster.jpg">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <link rel="preload" as="image" href="assets/img/header-galion.jpg" fetchpriority="high">
+  <link rel="preload" as="image" href="assets/img/surf-poster.jpg" fetchpriority="high">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=JetBrains+Mono:wght@400..700&family=Manrope:wght@400..800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="preload" href="data/products.json" as="fetch" type="application/json" crossorigin>
 </head>
 <body>
   <a class="skip" href="#drop">Aller à la boutique</a>
@@ -22,43 +23,86 @@
   <!-- Fond du site (après la photo) : soleil filtré par les palmes, en WebGL -->
   <canvas class="ocean" data-ocean aria-hidden="true"></canvas>
 
-  <!-- Menu : île flottante, toujours visible -->
+  <!-- Menu : bandeau d'annonces + île flottante + méga-menu -->
   <header class="top" data-top>
-    <div class="top__bar">
+    <div class="ticker" aria-label="Annonces">
+      <div class="ticker__in">
+        <div class="ticker__track" data-ticker>
+          <span><b data-drop-name>Drop Été 26</b> en ligne</span>
+          <span data-pay>Paiement sécurisé Stripe</span>
+          <span>Panier, recherche, commande par DM</span>
+          <span>Une question ? DM <b>@fknvamos</b></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="top__bar" data-bar>
       <a class="top__mark" href="#" aria-label="FKN VAMOS, accueil">FKN<span>·</span>VAMOS</a>
       <nav class="top__nav" aria-label="Navigation principale" data-nav>
         <span class="top__pill" data-pill aria-hidden="true"></span>
-        <a href="#drop" data-section="drop">Le drop</a>
+        <button type="button" class="top__shop" data-section="drop" data-mega-btn aria-expanded="false" aria-controls="mega">
+          Shop <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg>
+        </button>
         <a href="#lookbook" data-section="lookbook">Lookbook</a>
         <a href="#infos" data-section="infos">Infos</a>
       </nav>
       <div class="top__end">
+        <button class="top__search" type="button" data-find-open aria-label="Rechercher un produit">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+          <span class="top__search-txt">Rechercher</span>
+          <kbd data-kbd>⌘K</kbd>
+        </button>
         <a class="top__ig" data-ig href="https://instagram.com/fknvamos" target="_blank" rel="noopener" aria-label="Instagram @fknvamos">
           <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" class="fill"/></svg>
         </a>
-        <a class="top__cta" href="#drop">Shop</a>
+        <button class="top__cart" type="button" data-cart-open aria-label="Panier, 0 article">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.2 11.2a2 2 0 0 1-2 1.8H8.2a2 2 0 0 1-2-1.8z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg>
+          <span class="top__cart-txt">Panier</span>
+          <span class="top__count" data-cart-count>0</span>
+        </button>
         <button class="top__burger" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu" data-burger><span></span><span></span></button>
       </div>
       <span class="top__progress" data-progress aria-hidden="true"></span>
     </div>
+
+    <!-- Méga-menu Shop (desktop) -->
+    <div class="mega" id="mega" data-mega hidden>
+      <div class="mega__panel">
+        <div class="mega__cats" role="list" data-mega-cats></div>
+        <div class="mega__products" data-mega-products aria-live="polite"></div>
+        <a class="mega__story" href="#lookbook" data-mega-close>
+          <img src="assets/img/wallpaper.jpg" alt="" loading="lazy" decoding="async" width="960" height="948">
+          <span class="mega__story-txt">Le lookbook, porté au bord de l'eau <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span>
+        </a>
+      </div>
+    </div>
   </header>
+  <div class="scrim" data-scrim aria-hidden="true"></div>
 
   <!-- Menu mobile plein écran -->
   <div class="menu" id="menu" data-menu hidden>
-    <nav class="menu__nav" aria-label="Menu mobile">
-      <a href="#drop" style="--i:0"><span class="menu__n">01</span>Le drop</a>
-      <a href="#lookbook" style="--i:1"><span class="menu__n">02</span>Lookbook</a>
-      <a href="#infos" style="--i:2"><span class="menu__n">03</span>Infos</a>
-      <a data-ig href="https://instagram.com/fknvamos" target="_blank" rel="noopener" style="--i:3"><span class="menu__n">04</span>Instagram</a>
-    </nav>
+    <div class="menu__in">
+      <button class="menu__find" type="button" data-find-open>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+        Chercher un tee, une casquette…
+      </button>
+      <p class="menu__label">Shop</p>
+      <div class="menu__cats" data-menu-cats></div>
+      <nav class="menu__nav" aria-label="Menu mobile">
+        <a href="#lookbook" style="--i:6">Lookbook</a>
+        <a href="#infos" style="--i:7">Infos</a>
+        <a data-ig href="https://instagram.com/fknvamos" target="_blank" rel="noopener" style="--i:8">Instagram <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8"/></svg></a>
+      </nav>
+    </div>
   </div>
 
   <main>
     <!-- 1. HERO : le lagon de Galion, l'eau animée en WebGL -->
     <section class="hero" aria-labelledby="hero-title" data-hero>
       <div class="hero__media" data-hero-media aria-hidden="true">
-        <img class="hero__img" src="assets/img/header-galion.jpg" alt="" width="1920" height="780" fetchpriority="high" data-hero-img>
-        <canvas class="hero__gl" data-sea></canvas>
+        <video class="hero__video" data-hero-video muted playsinline preload="none"
+          poster="assets/img/surf-poster.jpg" width="1920" height="1080"
+          data-src-hd="assets/video/surf-1440.mp4" data-src-sd="assets/video/surf-720.mp4"></video>
       </div>
       <div class="hero__shade" aria-hidden="true" data-hero-shade></div>
 
@@ -78,49 +122,94 @@
         </h1>
         <p class="hero__lede fade-up" style="--d:3">Né sur Instagram, taillé pour l'eau turquoise. Le nouveau drop vient d'arriver sur le sable.</p>
         <div class="hero__actions fade-up" style="--d:4">
-          <a class="btn btn--primary" href="#drop">Voir le drop <span aria-hidden="true">→</span></a>
+          <a class="btn btn--primary" href="#drop">Voir le drop <span aria-hidden="true"><svg class="ar" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></a>
           <a class="btn btn--glass" href="#lookbook">Lookbook</a>
         </div>
       </div>
 
       <aside class="hero__feat fade-up" style="--d:5" data-featured aria-label="Pièce phare"></aside>
 
-      <p class="hero__hint fade-up" style="--d:6" aria-hidden="true" data-hint><span class="hero__hint-dot"></span>Touche l'eau</p>
+      <button class="hero__play fade-up" style="--d:6" type="button" data-video-toggle aria-pressed="false" hidden>
+        <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
+        <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>
+        <span data-video-label>Pause</span>
+      </button>
     </section>
 
     <!-- 2. LE DROP : rail horizontal piloté par le scroll -->
     <section id="drop" class="drop" aria-labelledby="drop-title" data-drop>
       <div class="drop__sticky" data-sticky>
         <div class="drop__head">
-          <div>
-            <p class="kicker"><span data-drop-name>Drop Été 26</span> · <span data-count></span></p>
+          <div class="drop__title">
             <h2 id="drop-title" class="h2" data-mask>Le drop</h2>
+            <p class="drop__meta"><span data-drop-name>Drop Été 26</span> <span class="drop__count" data-count></span> <span class="tbc" data-tbc>Prix provisoires</span></p>
           </div>
-          <div class="filters" role="group" aria-label="Filtrer par type">
-            <button class="chip is-on" data-filter="all" aria-pressed="true">Tout</button>
-            <button class="chip" data-filter="tee" aria-pressed="false">T-shirts</button>
-            <button class="chip" data-filter="hoodie" aria-pressed="false">Hoodies</button>
-            <button class="chip" data-filter="shorts" aria-pressed="false">Shorts</button>
-            <button class="chip" data-filter="cap" aria-pressed="false">Casquettes</button>
+          <div class="drop__tools">
+            <div class="filters" role="group" aria-label="Filtrer par type" data-filters>
+              <span class="filters__pill" data-filter-pill aria-hidden="true"></span>
+              <button class="chip is-on" data-filter="all" aria-pressed="true">Tout</button>
+              <button class="chip" data-filter="tee" aria-pressed="false">T-shirts</button>
+              <button class="chip" data-filter="hoodie" aria-pressed="false">Hoodies</button>
+              <button class="chip" data-filter="shorts" aria-pressed="false">Shorts</button>
+              <button class="chip" data-filter="cap" aria-pressed="false">Casquettes</button>
+            </div>
+            <label class="sort">
+              <span class="sr">Trier</span>
+              <select data-sort>
+                <option value="default">Sélection</option>
+                <option value="new">Nouveautés</option>
+                <option value="asc">Prix croissant</option>
+                <option value="desc">Prix décroissant</option>
+              </select>
+              <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg>
+            </label>
+            <div class="view" role="group" aria-label="Affichage">
+              <button type="button" class="view__btn is-on" data-view="rail" aria-pressed="true" aria-label="Affichage en rail">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="7" height="12" rx="2"/><rect x="12" y="6" width="7" height="12" rx="2"/><path d="M21 8v8"/></svg>
+              </button>
+              <button type="button" class="view__btn" data-view="grid" aria-pressed="false" aria-label="Affichage en grille">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg>
+              </button>
+            </div>
           </div>
         </div>
         <div class="drop__viewport" data-viewport>
-          <ul class="drop__track" data-grid></ul>
+          <ul class="drop__track" data-grid aria-busy="true"><li class="drop__item skel" aria-hidden="true"><div class="skel__media"></div><div class="skel__line"></div><div class="skel__line skel__line--s"></div></li><li class="drop__item skel" aria-hidden="true"><div class="skel__media"></div><div class="skel__line"></div><div class="skel__line skel__line--s"></div></li><li class="drop__item skel" aria-hidden="true"><div class="skel__media"></div><div class="skel__line"></div><div class="skel__line skel__line--s"></div></li><li class="drop__item skel" aria-hidden="true"><div class="skel__media"></div><div class="skel__line"></div><div class="skel__line skel__line--s"></div></li></ul>
         </div>
         <p class="empty" data-empty hidden>Rien pour ce filtre. Essaie « Tout ».</p>
-        <div class="drop__rail" aria-hidden="true"><span data-rail></span></div>
+        <div class="load-error" data-load-error role="alert" hidden>
+          <p data-load-msg>Le catalogue n'a pas pu se charger.</p>
+          <button type="button" class="btn btn--dark" data-load-retry>Réessayer</button>
+        </div>
+        <div class="drop__foot">
+          <p class="drop__pos" aria-hidden="true"><span data-pos>01</span> / <span data-pos-n>01</span></p>
+          <div class="drop__rail" aria-hidden="true"><span data-rail></span></div>
+          <div class="drop__arrows">
+            <button type="button" class="drop__arrow" data-step="-1" aria-label="Pièces précédentes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6"/></svg></button>
+            <button type="button" class="drop__arrow" data-step="1" aria-label="Pièces suivantes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- 3. MANIFESTE : les mots s'allument au scroll -->
+    <!-- 3. INDEX : les catégories, aperçu photo qui suit la souris -->
+    <section id="categories" class="index" aria-labelledby="index-title">
+      <div class="index__head">
+        <h2 id="index-title" class="h2" data-mask>Par pièce.</h2>
+        <p class="index__lede">Tout le drop, rangé par ce que tu vas porter. Touche une ligne, le rail se filtre.</p>
+      </div>
+      <ul class="index__list" data-index></ul>
+      <div class="index__peek" data-peek aria-hidden="true"><div class="index__peek-in" data-peek-in></div></div>
+    </section>
+
+    <!-- 4. MANIFESTE : les mots s'allument au scroll -->
     <section class="manifesto" aria-label="Manifeste" data-manifesto>
       <p class="manifesto__text" data-words>On ne réfléchit pas trois fois. On prend la planche, on enfile le tee, on dit vamos et on y va.</p>
     </section>
 
-    <!-- 4. LOOKBOOK : mosaïque, dévoilement au clip-path -->
+    <!-- 5. LOOKBOOK : mosaïque, dévoilement au clip-path -->
     <section id="lookbook" class="look" aria-labelledby="look-title">
       <div class="look__head">
-        <p class="kicker" data-scramble>Lookbook / 04 photos</p>
         <h2 id="look-title" class="h2" data-mask>Porté au bord de l'eau.</h2>
       </div>
       <div class="look__grid">
@@ -128,47 +217,63 @@
         <figure class="shot shot--tall" data-shot><img src="assets/img/cap-fkn-vamos.jpg" alt="Casquette noire FKN VAMOS! portée face à la mer" loading="lazy" decoding="async" width="611" height="620"><figcaption>Casquette FKN VAMOS!</figcaption></figure>
         <figure class="shot" data-shot><img src="assets/img/tee-fkn-vamos.jpg" alt="T-shirt noir FKN VAMOS! posé sur une planche de surf" loading="lazy" decoding="async" width="622" height="623"><figcaption>Tee FKN VAMOS!</figcaption></figure>
         <figure class="shot" data-shot><img src="assets/img/cap-con-todo.jpg" alt="Casquette noire Con Todo! posée sur un muret au bord de la plage" loading="lazy" decoding="async" width="628" height="624"><figcaption>Casquette Con Todo!</figcaption></figure>
+        <figure class="shot" data-shot><img src="assets/img/tee-femme.jpg" alt="Femme en tee noir FKN VAMOS! devant un rack de planches de surf" loading="lazy" decoding="async" width="960" height="953" style="object-position: 50% 30%"><figcaption>Tee FKN VAMOS! Femme</figcaption></figure>
+        <figure class="shot" data-shot><img src="assets/img/cap-fkn-vamos-2.jpg" alt="Femme souriante qui soulève sa casquette FKN VAMOS! sous les palmiers" loading="lazy" decoding="async" width="960" height="955" style="object-position: 50% 35%"><figcaption>Casquette FKN VAMOS!</figcaption></figure>
+        <figure class="shot" data-shot><img src="assets/img/look-peche.jpg" alt="Enfant en casquette FKN VAMOS! qui porte un barracuda sous la pluie" loading="lazy" decoding="async" width="960" height="944" style="object-position: 50% 35%"><figcaption>Casquette FKN VAMOS!</figcaption></figure>
+        <figure class="shot" data-shot><img src="assets/img/cap-kids.jpg" alt="Enfant de dos, bras levés, casquette FKN VAMOS! Kids dans la forêt" loading="lazy" decoding="async" width="960" height="848" style="object-position: 50% 40%"><figcaption>Casquette FKN VAMOS! Kids</figcaption></figure>
       </div>
       <a class="btn btn--dark look__cta" data-ig href="https://instagram.com/fknvamos" target="_blank" rel="noopener">Suivre @fknvamos</a>
     </section>
 
-    <!-- 5. INFOS -->
+    <!-- 6. INFOS -->
     <section id="infos" class="infos" aria-labelledby="infos-title">
       <div class="infos__side">
-        <p class="kicker" data-scramble>Avant de commander</p>
         <h2 id="infos-title" class="h2" data-mask>Infos</h2>
         <p class="infos__note">Une question qui n'est pas là ? Écris-nous en DM sur <a data-ig href="https://instagram.com/fknvamos" target="_blank" rel="noopener">Instagram</a><span data-email-line></span>.</p>
       </div>
-      <div class="faq">
-        <details>
-          <summary>Livraison</summary>
-          <div class="faq__body"><p>[À compléter avec le client : zones, délais, prix de la livraison.]</p></div>
-        </details>
-        <details>
-          <summary>Retours et échanges</summary>
-          <div class="faq__body"><p>[À compléter avec le client : délai de retour, conditions, procédure.]</p></div>
-        </details>
-        <details>
-          <summary>Guide des tailles</summary>
-          <div class="faq__body"><p>[À compléter avec le client : tableau des mesures par produit.]</p></div>
-        </details>
-        <details>
-          <summary>Paiement</summary>
-          <div class="faq__body"><p>Paiement sécurisé par Stripe : carte bancaire, Apple Pay, Google Pay selon ton appareil.</p></div>
-        </details>
+      <div class="faq" data-faq-list>
+        <details id="faq-livraison"><summary>Livraison</summary><div class="faq__body"><p>Chargement…</p></div></details>
+        <details id="faq-retours"><summary>Retours et échanges</summary><div class="faq__body"><p>Chargement…</p></div></details>
+        <details id="faq-tailles"><summary>Guide des tailles</summary><div class="faq__body"><p>Chargement…</p></div></details>
+        <details id="faq-paiement"><summary>Paiement</summary><div class="faq__body"><p>Chargement…</p></div></details>
       </div>
     </section>
   </main>
 
   <footer class="foot" data-foot>
+    <div class="foot__top">
+      <div class="foot__call">
+        <h2 class="foot__h">Le prochain drop sort d'abord sur Instagram.</h2>
+        <a class="btn btn--primary" data-ig href="https://instagram.com/fknvamos" target="_blank" rel="noopener">Suivre @fknvamos <span aria-hidden="true"><svg class="ar" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></span></a>
+      </div>
+      <nav class="foot__cols" aria-label="Liens de pied de page">
+        <div>
+          <p class="foot__t">Shop</p>
+          <a href="#drop" data-filter-link="all">Tout le drop</a>
+          <a href="#drop" data-filter-link="tee">T-shirts</a>
+          <a href="#drop" data-filter-link="hoodie">Hoodies</a>
+          <a href="#drop" data-filter-link="shorts">Shorts</a>
+          <a href="#drop" data-filter-link="cap">Casquettes</a>
+        </div>
+        <div>
+          <p class="foot__t">Aide</p>
+          <a href="#infos" data-faq="livraison">Livraison</a>
+          <a href="#infos" data-faq="retours">Retours et échanges</a>
+          <a href="#infos" data-faq="tailles">Guide des tailles</a>
+          <a href="#infos" data-faq="paiement">Paiement</a>
+        </div>
+        <div>
+          <p class="foot__t">Suivre</p>
+          <a data-ig href="https://instagram.com/fknvamos" target="_blank" rel="noopener">Instagram</a>
+          <a href="#lookbook">Lookbook</a>
+        </div>
+      </nav>
+    </div>
     <p class="foot__word" aria-hidden="true"><span>V</span><span>A</span><span>M</span><span>O</span><span>S</span><span>!</span></p>
     <div class="foot__base">
       <span>© <span data-year></span> FKN VAMOS</span>
-      <nav aria-label="Liens de pied de page">
-        <a href="#drop">Le drop</a>
-        <a href="#infos">Infos</a>
-        <a data-ig href="https://instagram.com/fknvamos" target="_blank" rel="noopener">Instagram</a>
-      </nav>
+      <span class="foot__pay" data-pay>Paiement sécurisé par Stripe</span>
+      <a href="#" data-to-top>Retour en haut <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></a>
     </div>
   </footer>
 
@@ -180,12 +285,59 @@
     <div class="sheet__body" data-sheet-body></div>
   </dialog>
 
+  <!-- Recherche instantanée -->
+  <dialog class="finder" data-finder aria-label="Rechercher">
+    <div class="finder__bar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+      <input type="search" class="finder__input" data-find-input placeholder="Tee, hoodie, casquette…" autocomplete="off" spellcheck="false"
+        role="combobox" aria-expanded="true" aria-controls="finder-list" aria-autocomplete="list" aria-label="Rechercher un produit">
+      <button class="finder__esc" type="button" data-find-close>Échap</button>
+    </div>
+    <div class="finder__tags" data-find-tags></div>
+    <ul class="finder__list" id="finder-list" role="listbox" data-find-list></ul>
+    <p class="finder__empty" data-find-empty hidden>Rien ne correspond. Essaie « tee » ou « casquette ».</p>
+    <p class="finder__foot"><span><kbd>↑</kbd><kbd>↓</kbd> naviguer</span><span><kbd>Entrée</kbd> ouvrir</span></p>
+  </dialog>
+
+  <!-- Panier : tiroir à droite -->
+  <dialog class="cart" data-cart aria-labelledby="cart-title">
+    <div class="cart__head">
+      <h2 id="cart-title" class="cart__title">Panier <span data-cart-n></span></h2>
+      <button class="sheet__close cart__close" data-cart-close aria-label="Fermer le panier">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6 L18 18 M18 6 L6 18"/></svg>
+      </button>
+    </div>
+    <ul class="cart__list" data-cart-list></ul>
+    <div class="cart__empty" data-cart-empty>
+      <p>Ton panier est vide.</p>
+      <a class="btn btn--dark" href="#drop" data-cart-close>Voir le drop</a>
+    </div>
+    <div class="cart__foot" data-cart-foot>
+      <p class="cart__sum"><span>Sous-total</span><span data-cart-total>0 €</span></p>
+      <p class="cart__note" data-cart-note>Livraison calculée à l'étape suivante.</p>
+      <button class="btn btn--buy" type="button" data-checkout>Payer</button>
+      <button class="cart__ig" type="button" data-order-ig>Commander par DM Instagram</button>
+    </div>
+  </dialog>
+
+  <!-- Visionneuse du lookbook -->
+  <dialog class="lb" data-lb aria-label="Lookbook">
+    <div class="lb__stage" data-lb-stage><img class="lb__img" data-lb-img src="assets/img/wallpaper-hd.jpg" alt="" loading="lazy" decoding="async"></div>
+    <div class="lb__bar">
+      <p class="lb__cap"><span class="lb__n" data-lb-n></span> <span data-lb-cap></span></p>
+      <div class="lb__nav">
+        <button class="lb__btn" type="button" data-lb-prev aria-label="Photo précédente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H6M11 6l-6 6 6 6"/></svg></button>
+        <button class="lb__btn" type="button" data-lb-next aria-label="Photo suivante"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+      </div>
+    </div>
+    <button class="lb__btn lb__close" type="button" data-lb-close aria-label="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6 L18 18 M18 6 L6 18"/></svg></button>
+  </dialog>
+
   <div class="toast" role="status" aria-live="polite" data-toast></div>
 
   <!-- Curseur (souris uniquement) -->
   <div class="cursor is-hidden" aria-hidden="true" data-cursor><span class="cursor__ring"><span class="cursor__label" data-cursor-label></span></span><span class="cursor__dot"></span></div>
 
-  <script src="data/products.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
 </html>

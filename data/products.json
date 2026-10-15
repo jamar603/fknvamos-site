@@ -1,0 +1,224 @@
+{
+  "_aide": [
+    "CATALOGUE FKN VAMOS : le seul fichier à modifier pour les produits, la boutique et la FAQ.",
+    "Le site le charge en AJAX (fetch) à chaque visite : pas besoin de toucher au code.",
+    "Produit : id (unique, sans espace), name, type (tee | hoodie | shorts | cap), price (euros), color (visuel provisoire), towel (2 couleurs du fond), image (photo principale ou \"\"), images (autres photos, option), look (photo portée pour la carte phare, option), sizes, stock (dispo | derniers | epuise), stripe (lien Stripe, ou objet {\"S\": \"lien\", ...}), featured (true pour la pièce phare), new (true pour le badge Nouveau).",
+    "Boutique : dropName, instagram, email, currency, pricesFinal (true quand les prix sont validés).",
+    "FAQ : chaque entrée a un id (livraison, retours, tailles, paiement : utilisés par les liens), une question et une réponse.",
+    "Attention : JSON strict. Guillemets doubles, pas de virgule après le dernier élément."
+  ],
+  "shop": {
+    "dropName": "Drop Été 26",
+    "instagram": "https://instagram.com/fknvamos",
+    "email": "",
+    "pricesFinal": false,
+    "currency": "EUR"
+  },
+  "faq": [
+    {
+      "id": "livraison",
+      "q": "Livraison",
+      "a": "[À compléter avec le client : zones, délais, prix de la livraison.]"
+    },
+    {
+      "id": "retours",
+      "q": "Retours et échanges",
+      "a": "[À compléter avec le client : délai de retour, conditions, procédure.]"
+    },
+    {
+      "id": "tailles",
+      "q": "Guide des tailles",
+      "a": "[À compléter avec le client : tableau des mesures par produit.]"
+    },
+    {
+      "id": "paiement",
+      "q": "Paiement",
+      "a": "Paiement sécurisé par Stripe : carte bancaire, Apple Pay, Google Pay selon ton appareil."
+    }
+  ],
+  "products": [
+    {
+      "id": "tee-fkn-vamos",
+      "name": "Tee FKN VAMOS!",
+      "type": "tee",
+      "price": 35,
+      "color": "#111111",
+      "towel": [
+        "#12b5bf",
+        "#04223a"
+      ],
+      "image": "assets/img/tee-fkn-vamos.jpg",
+      "images": [
+        "assets/img/wallpaper.jpg"
+      ],
+      "look": "assets/img/wallpaper-hd.jpg",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "stock": "dispo",
+      "stripe": "",
+      "featured": true
+    },
+    {
+      "id": "tee-femme",
+      "name": "Tee FKN VAMOS! Femme",
+      "type": "tee",
+      "price": 35,
+      "color": "#111111",
+      "towel": [
+        "#2fd6dc",
+        "#0a1440"
+      ],
+      "image": "assets/img/tee-femme.jpg",
+      "sizes": [
+        "XS",
+        "S",
+        "M",
+        "L"
+      ],
+      "stock": "dispo",
+      "stripe": "",
+      "new": true
+    },
+    {
+      "id": "hoodie-marea",
+      "name": "Hoodie Marea",
+      "type": "hoodie",
+      "price": 65,
+      "color": "#0a1440",
+      "towel": [
+        "#ffd23f",
+        "#1238d6"
+      ],
+      "image": "",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "stock": "dispo",
+      "stripe": ""
+    },
+    {
+      "id": "short-orilla",
+      "name": "Short Orilla",
+      "type": "shorts",
+      "price": 40,
+      "color": "#ffd23f",
+      "towel": [
+        "#1238d6",
+        "#f6f7fb"
+      ],
+      "image": "",
+      "sizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "stock": "dispo",
+      "stripe": ""
+    },
+    {
+      "id": "cap-con-todo",
+      "name": "Casquette Con Todo!",
+      "type": "cap",
+      "price": 28,
+      "color": "#111111",
+      "towel": [
+        "#f6f7fb",
+        "#0a1440"
+      ],
+      "image": "assets/img/cap-con-todo.jpg",
+      "sizes": [
+        "Unique"
+      ],
+      "stock": "dispo",
+      "stripe": ""
+    },
+    {
+      "id": "cap-fkn-vamos",
+      "name": "Casquette FKN VAMOS!",
+      "type": "cap",
+      "price": 28,
+      "color": "#111111",
+      "towel": [
+        "#2f7fe0",
+        "#f6f7fb"
+      ],
+      "image": "assets/img/cap-fkn-vamos.jpg",
+      "images": [
+        "assets/img/cap-fkn-vamos-2.jpg",
+        "assets/img/look-peche.jpg"
+      ],
+      "sizes": [
+        "Unique"
+      ],
+      "stock": "dispo",
+      "stripe": ""
+    },
+    {
+      "id": "cap-kids",
+      "name": "Casquette FKN VAMOS! Kids",
+      "type": "cap",
+      "price": 25,
+      "color": "#111111",
+      "towel": [
+        "#9be37b",
+        "#0a1440"
+      ],
+      "image": "assets/img/cap-kids.jpg",
+      "images": [
+        "assets/img/look-peche.jpg"
+      ],
+      "sizes": [
+        "Enfant"
+      ],
+      "stock": "dispo",
+      "stripe": "",
+      "new": true
+    },
+    {
+      "id": "tee-sol",
+      "name": "Tee Sol",
+      "type": "tee",
+      "price": 35,
+      "color": "#ffd23f",
+      "towel": [
+        "#ef3b2d",
+        "#ffd23f"
+      ],
+      "image": "",
+      "sizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "stock": "epuise",
+      "stripe": ""
+    },
+    {
+      "id": "hoodie-faro",
+      "name": "Hoodie Faro",
+      "type": "hoodie",
+      "price": 65,
+      "color": "#ef3b2d",
+      "towel": [
+        "#0a1440",
+        "#ef3b2d"
+      ],
+      "image": "",
+      "sizes": [
+        "M",
+        "L",
+        "XL"
+      ],
+      "stock": "dispo",
+      "stripe": ""
+    }
+  ]
+}

@@ -11,7 +11,7 @@ Le site est 100 % statique (HTML, CSS, JS). Pas de build, pas de serveur. Le pai
 fknvamos-site/
 ├── index.html              page unique (hero, drop, plage, infos, footer)
 ├── data/
-│   └── products.js         CATALOGUE : le seul fichier à modifier pour les produits
+│   └── products.json       CATALOGUE (JSON chargé en AJAX) : produits, infos boutique, FAQ
 ├── assets/
 │   ├── css/styles.css      tout le style
 │   ├── js/app.js           rendu des produits, fiche produit, paiement, animations
@@ -30,7 +30,7 @@ fknvamos-site/
 
 ## Modifier les produits
 
-Tout se passe dans `data/products.js`. Chaque produit a un nom, un prix, des tailles, un état de stock
+Tout se passe dans `data/products.json` (chargé en AJAX par le site, format JSON strict : guillemets doubles, pas de virgule finale). La FAQ et les infos boutique sont dans le même fichier. Chaque produit a un nom, un prix, des tailles, un état de stock
 (`dispo`, `derniers`, `epuise`) et un lien Stripe.
 
 Photos : déposer l'image dans `assets/img/` puis remplir `image: "assets/img/mon-produit.jpg"`.
@@ -64,3 +64,10 @@ Nom de domaine perso : Settings → Pages → Custom domain.
 - Comptes Stripe et liens de paiement
 - Infos livraison, retours, guide des tailles, email de contact
 - Photos lifestyle pour la section « Sur la plage »
+
+## Vidéo du hero
+
+`assets/video/surf-1440.mp4` (grand écran) et `surf-720.mp4` (téléphone) : vidéo Pexels n°4782485,
+« Tracking shot of a surfer riding a sea wave » par Jess Loiterton, licence Pexels (usage commercial libre,
+crédit non obligatoire). Poster : `assets/img/surf-poster.jpg` (première image). Pour changer de vidéo,
+remplacer ces fichiers en gardant les mêmes noms.
